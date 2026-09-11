@@ -1,0 +1,1596 @@
+% ----------------------------------------------------------
+% Desenvolvimento do Projeto
+% ----------------------------------------------------------
+\chapter{Desenvolvimento do Projeto}
+\label{cha:desenvolvimento}
+
+Este capítulo detalha as etapas de concepção, modelagem e implementação do sistema \textit{SyncCarreira}. O foco estrutural deste documento abrange desde o levantamento inicial de requisitos até a definição da arquitetura de \textit{back-end} e das estratégias de segurança e implantação, garantindo a robustez necessária para o processamento de dados sensíveis no contexto de testes vocacionais.
+
+\section{Escopo do Projeto}
+
+O escopo deste projeto compreende o desenvolvimento de uma plataforma \textit{Web} responsiva, estruturada no modelo \textit{Software as a Service} (SaaS), voltada para a automação e gestão de testes vocacionais em instituições de ensino. O sistema visa atender a três perfis distintos de usuários: Administrador, Psicóloga Escolar e Aluno.
+
+Para solucionar o problema de lentidão e processos manuais na orientação vocacional, o sistema entregará as seguintes funcionalidades:
+
+\begin{itemize}
+    \item \textbf{Módulo de Autenticação e Autorização:} Sistema de \textit{login} seguro com controle de acesso baseado em perfis (\textit{Role-Based Access Control}), garantindo o isolamento de dados entre diferentes instituições e usuários.
+
+    \item \textbf{Gestão Dinâmica de Testes:} Ferramenta administrativa que permite às psicólogas cadastrar, editar, visualizar e excluir testes vocacionais, inserindo perguntas, escalas e pesos personalizados diretamente na plataforma.
+
+    \item \textbf{Módulo do Aluno:} Interface interativa e gamificada (utilizando componentes como a Escala Likert) para a realização dos testes vocacionais de forma digital.
+
+    \item \textbf{Feedback Instantâneo:} O motor do sistema processará as respostas em tempo real e, ao finalizar a submissão, fornecerá um \textit{feedback} imediato na tela do aluno com o seu perfil vocacional calculado.
+
+    \item \textbf{Motor de Avaliação (\textit{Back-end}):} Algoritmo responsável por receber as respostas do aluno, tabular os dados com base nos pesos pré-definidos e calcular o perfil vocacional resultante.
+
+    \item \textbf{Módulo da Psicóloga (\textit{Dashboard}):} Painel de gestão em que a profissional poderá visualizar a lista de alunos de sua instituição, acompanhar o \textit{status} de preenchimento dos testes e acessar os relatórios finais com os resultados consolidados de cada estudante.
+
+    \item \textbf{Painel da Psicóloga (Filtros e Classificação):} Painel de gestão em que o profissional poderá acompanhar o progresso dos testes. O módulo contará com ferramentas de filtragem avançada, permitindo classificar e agrupar os alunos por turma e por resultado vocacional.
+
+    \item \textbf{Agendamento de Consultas:} Módulo integrado de calendário que permite à psicóloga marcar, organizar e gerenciar horários de atendimento e sessões de orientação individual com os alunos a partir do sistema.
+
+    \item \textbf{Módulo Administrativo:} Funcionalidades para o cadastro de escolas, psicólogas e alunos na base de dados.
+\end{itemize}
+
+\subsection{Regras de negócio}
+
+As regras de negócio estabelecem as políticas, as restrições e as diretrizes operacionais que o software SyncCarreira deve seguir para garantir a eficácia do seu propósito pedagógico e terapêutico. Segundo a literatura de Engenharia de Software, a definição clara dessas regras é o que garante que o sistema reflita adequadamente as necessidades, os processos e os limites do domínio do problema, servindo como base para a validação dos requisitos \cite{sommerville2011, pressman2016}.
+
+A dinâmica principal do sistema fundamenta-se em uma progressão estruturada, na qual a jornada do aluno é dividida em quatro trilhas sequenciais obrigatórias: autoconhecimento, influências, informação e projeto de futuro. Como mecanismo de controle de fluxo, o avanço na plataforma é estritamente condicionado à conclusão da etapa anterior. Durante esse processo, o sistema assegura a autonomia do estudante, permitindo que ele expresse suas opiniões e sentimentos livremente, culminando na elaboração de uma síntese textual ao final de cada trilha.
+
+Em alinhamento com as diretrizes contemporâneas de orientação profissional, que compreendem a escolha de carreira como um processo construído socialmente em vez da revelação de uma vocação inata \cite{bock2004}, o software atua estritamente como uma ferramenta facilitadora. O sistema não valida nem fornece conteúdo psicológico proprietário; a curadoria e a formulação das perguntas são de inteira responsabilidade da instituição e do profissional de psicologia. Consequentemente, o resultado final entregue pelo sistema não consiste em um diagnóstico fechado de carreira, mas sim na apresentação de um leque amplo de possibilidades, garantindo que o aluno possua um panorama completo do seu processo de escolha. No pilar de Informação, a plataforma deve assegurar que o aluno acesse links previamente curados pela psicóloga, direcionando-o a fontes externas seguras e confiáveis, como portais do Enem, ProUni, políticas de cotas e informações sobre cursos.
+
+Por fim, os mecanismos de monitoramento foram projetados para otimizar o tempo e a intervenção da psicóloga escolar, garantindo que ela consiga dar atenção especial àqueles alunos que apresentam dificuldades. Para respeitar as normas de atuação profissional e manter o foco na gestão das turmas, o painel da psicóloga exibirá um indicador de status de conclusão por aluno e acionará um alerta visual (flag) de "necessidade de orientação", preservando, nesse nível gerencial, o sigilo sobre o detalhe de cada resposta fornecida. O sistema também incorpora regras de triagem terapêutica, nas quais os alunos que já possuem todas as trilhas concluídas, mas permanecem com o status "em dúvida", são imediatamente priorizados para a participação em sessões de orientação em grupo.
+
+Para uma visualização objetiva e rastreabilidade durante o desenvolvimento, a Tabela 1 descreve as regras de negócio mapeadas para a plataforma.
+
+\begin{table}[htb]
+    \centering
+    \ABNTEXfontereduzida
+    \caption[Regras de Negócio do SyncCarreira]{Regras de negócio do SyncCarreira.}
+    \label{tab-regras-negocio}
+    \begin{tabular}{|c|p{12cm}|}
+    \hline
+    \textbf{Identificador} & \multicolumn{1}{c|}{\textbf{Regra de Negócio}} \\
+    \hline
+    \textbf{RN-01} & A jornada do aluno é dividida em 4 trilhas sequenciais (autoconhecimento, influências, informação, projeto de futuro). Não é possível avançar sem concluir a trilha anterior. \\
+    \hline
+    \textbf{RN-02} & O aluno precisa ter autonomia para realizar as trilhas e expressar sua opinião/sentimentos. Ao final de cada trilha, o aluno deve obrigatoriamente registrar uma síntese textual livre. \\
+    \hline
+    \textbf{RN-03} & O painel da psicóloga deve exibir o status por aluno (trilhas concluídas) e acionar uma \textit{flag} de "necessidade de orientação" para alunos com dificuldades, sem exibir, neste painel, os detalhes das respostas individuais. \\
+    \hline
+    \textbf{RN-04} & Alunos que concluíram todas as trilhas, mas permanecem com o status "em dúvida", devem ser priorizados automaticamente pelo sistema para sessões de orientação em grupo. \\
+    \hline
+    \textbf{RN-05} & No pilar de Informação, o sistema deve fornecer aos alunos links previamente curados pela psicóloga direcionados a fontes externas confiáveis (Enem, ProUni, cotas, cursos disponíveis). \\
+    \hline
+    \textbf{RN-06} & O sistema não valida nem fornece conteúdo psicológico proprietário. A instituição/psicóloga é inteiramente responsável por criar e inserir as perguntas (trilhas) dentro da ferramenta. \\
+    \hline
+    \textbf{RN-07} & O resultado final gerado pela jornada deve apresentar um leque de possibilidades formativas e profissionais, sendo proibida a geração de um diagnóstico fechado de carreira. \\
+    \hline
+    \textbf{RN-08} & O sistema deve fornecer ao aluno um panorama completo do seu histórico na jornada, garantindo uma visão holística e contínua do seu processo de escolha. \\
+    \hline
+    \end{tabular}
+    \legend{Fonte: Autoria própria (2026).}
+    \end{table}
+
+\subsection{Requisitos Funcionais}
+
+Os requisitos funcionais descrevem as ações e os comportamentos específicos que o software SyncCarreira deve executar para atender às necessidades dos seus diferentes perfis de usuários. Eles definem "o que" o sistema fará, delineando as interações fundamentais entre os atores e a plataforma.
+
+A arquitetura de funcionalidades do sistema foi distribuída entre três atores principais: o Administrador, a Psicóloga e o Aluno. O administrador detém permissões de alto nível para cadastrar, editar e desativar instituições (escolas ou ONGs) na plataforma, além de criar e gerenciar as contas de usuários com permissões isoladas por perfil. A psicóloga, atuando como curadora pedagógica, possui acesso para criar e organizar perguntas customizadas nas quatro trilhas fundamentais. Além disso, o sistema fornece à profissional um painel de monitoramento que exibe o status de cada aluno e gera alertas automáticos (flags) para aqueles que concluíram as trilhas mas indicaram indecisão, priorizando-os para agendamentos de sessões e permitindo a emissão de relatórios individuais ou de turma. A psicóloga também conta com ferramentas para enviar feedbacks personalizados e curar links de fontes externas.
+
+Do lado do aluno, o sistema exige a navegação obrigatória pelas quatro trilhas sequenciais (autoconhecimento, influências, informação e projeto de futuro). A plataforma garante a autonomia do estudante, permitindo o registro de sínteses textuais ao final de cada etapa e a livre expressão por meio de campos abertos e escalas. Como entrega de valor, o sistema fornece ao estudante a visualização de um leque de possibilidades de carreira ao final da jornada, o acompanhamento do seu histórico de testes, a personalização de interesses e o acesso direto aos seus agendamentos e feedbacks enviados pela profissional.
+
+A Tabela 5 detalha todos os requisitos funcionais mapeados para o MVP do SyncCarreira e suas respectivas prioridades. 
+
+{\ABNTEXfontereduzida
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{|c|p{2.5cm}|p{4.5cm}|c|c|c|}
+    \caption[Requisitos Funcionais do SyncCarreira]{Requisitos funcionais do SyncCarreira.}
+    \label{tab-requisitos-funcionais} \\
+    \hline
+
+    \textbf{ID} & 
+    \textbf{Título} & 
+    \textbf{Descrição} & 
+    \textbf{Regras} & 
+    \textbf{Ator} & 
+    \textbf{Prior.} \\
+    \hline
+    \endfirsthead
+
+    \caption[]{Requisitos funcionais do SyncCarreira (continuação).} \\
+    \hline
+    \textbf{ID} & 
+    \textbf{Título} & 
+    \textbf{Descrição} & 
+    \textbf{Regras} & 
+    \textbf{Ator} & 
+    \textbf{Prior.} \\
+    \hline
+    \endhead
+
+    \hline
+    \multicolumn{6}{r}{\textit{Continua na próxima página...}} \\
+    \endfoot
+    
+    \hline
+    \multicolumn{6}{l}{Fonte: Autoria própria (2026).} \\
+    \endlastfoot
+
+    \textcolor{blue!70!black}{\textbf{RF-01}} & 
+    \textbf{Cadastro de instituições} & 
+    O administrador deve poder cadastrar, editar e desativar instituições (escolas/ONGs) na plataforma, associando a cada uma seus usuários e turmas. & 
+    --- & 
+    Administrador & 
+    \textcolor{red!80!black}{\textbf{Alta}} \\
+    \hline
+    
+    \textcolor{blue!70!black}{\textbf{RF-02}} & 
+    \textbf{Gestão de usuários e perfis de acesso} & 
+    O administrador deve poder criar, editar e desativar contas de psicólogas e alunos, atribuindo o perfil correto (administrador, psicóloga, aluno) com permissões isoladas por perfil. & 
+    --- & 
+    Administrador & 
+    \textcolor{red!80!black}{\textbf{Alta}} \\
+    \hline
+    
+    \textcolor{blue!70!black}{\textbf{RF-03}} & 
+    \textbf{Criação e gestão de perguntas e trilhas} & 
+    A psicóloga deve poder criar, editar e excluir perguntas e organizá-las em trilhas customizadas, associadas aos quatro pilares (autoconhecimento, influências, informação, projeto de futuro). O conteúdo é de responsabilidade da instituição. & 
+    RN-06 & 
+    Psicóloga & 
+    \textcolor{red!80!black}{\textbf{Alta}} \\
+    \hline
+    
+    \textcolor{blue!70!black}{\textbf{RF-04}} & 
+    \textbf{Painel de monitoramento de status por aluno} & 
+    A psicóloga deve visualizar, em um painel, o status de progresso de cada aluno por trilha concluída, sem necessidade de ler resposta por resposta. & 
+    RN-03 & 
+    Psicóloga & 
+    \textcolor{red!80!black}{\textbf{Alta}} \\
+    \hline
+    
+    \textcolor{blue!70!black}{\textbf{RF-05}} & 
+    \textbf{Flag de necessidade de orientação} & 
+    O sistema deve sinalizar automaticamente alunos que concluíram todas as trilhas mas registraram dúvida ou indecisão na síntese final, gerando um alerta visível no painel da psicóloga. & 
+    RN-03, RN-04 & 
+    Psicóloga & 
+    \textcolor{red!80!black}{\textbf{Alta}} \\
+    \hline
+
+    \textcolor{blue!70!black}{\textbf{RF-06}} & 
+    \textbf{Priorização de alunos em dúvida para sessão} & 
+    A psicóloga deve poder visualizar e filtrar alunos com flag ativa e agendá-los para atendimento individual ou sessão em grupo, com suporte a múltiplos alunos por sessão. & 
+    RN-04 & 
+    Psicóloga & 
+    \textcolor{red!80!black}{\textbf{Alta}} \\
+    \hline
+
+    \textcolor{blue!70!black}{\textbf{RF-07}} & 
+    \textbf{Curadoria de links de fontes externas} & 
+    A psicóloga deve poder cadastrar e associar links de fontes externas confiáveis (Enem, ProUni, cotas, portais de cursos) à trilha de Informação, visíveis ao aluno durante a jornada. & 
+    RN-05 & 
+    Psicóloga & 
+    \textcolor{orange!80!black}{\textbf{Média}} \\
+    \hline
+
+    \textcolor{blue!70!black}{\textbf{RF-08}} & 
+    \textbf{Emissão de relatórios de turma e individuais} & 
+    A psicóloga deve poder gerar relatórios com o panorama de progresso da turma (visão macro) e relatório individual por aluno contendo sínteses e status de cada trilha. & 
+    RN-03 & 
+    Psicóloga & 
+    \textcolor{orange!80!black}{\textbf{Média}} \\
+    \hline
+
+    \textcolor{blue!70!black}{\textbf{RF-09}} & 
+    \textbf{Agendamento de sessões} & 
+    A psicóloga deve poder criar, editar e cancelar agendamentos de sessões individuais ou em grupo, com visualização por calendário. O aluno deve ser notificado sobre seus agendamentos. & 
+    --- & 
+    Psicóloga & 
+    \textcolor{orange!80!black}{\textbf{Média}} \\
+    \hline
+
+    \textcolor{blue!70!black}{\textbf{RF-10}} & 
+    \textbf{Feedback personalizável ao aluno} & 
+    A psicóloga deve poder redigir e enviar um feedback textual personalizado ao aluno ao final da jornada ou após sessão de orientação. & 
+    --- & 
+    Psicóloga & 
+    \textcolor{orange!80!black}{\textbf{Média}} \\
+    \hline
+
+    \textcolor{blue!70!black}{\textbf{RF-11}} & 
+    \textbf{Jornada de 4 trilhas sequenciais intertravadas} & 
+    O aluno deve percorrer as trilhas obrigatoriamente na ordem: autoconhecimento $\rightarrow$ influências $\rightarrow$ informação $\rightarrow$ projeto de futuro. O acesso à trilha seguinte é liberado somente após conclusão e síntese da trilha atual. & 
+    RN-01 & 
+    Aluno & 
+    \textcolor{red!80!black}{\textbf{Alta}} \\
+    \hline
+
+    \textcolor{blue!70!black}{\textbf{RF-12}} & 
+    \textbf{Registro de síntese textual ao final de cada trilha} & 
+    Ao concluir cada trilha, o aluno deve registrar uma síntese textual livre com suas reflexões e conclusões. O campo deve ter tamanho mínimo orientado, sem restrições de conteúdo. & 
+    RN-02 & 
+    Aluno & 
+    \textcolor{red!80!black}{\textbf{Alta}} \\
+    \hline
+
+    \textcolor{blue!70!black}{\textbf{RF-13}} & 
+    \textbf{Autonomia para expressão de opinião e sentimento} & 
+    O sistema deve oferecer campos abertos e instrumentos de escala (ex.: Likert) que permitam ao aluno expressar percepções, opiniões e sentimentos sem julgamento ou resposta certa. & 
+    RN-02 & 
+    Aluno & 
+    \textcolor{red!80!black}{\textbf{Alta}} \\
+    \hline
+
+    \textcolor{blue!70!black}{\textbf{RF-14}} & 
+    \textbf{Visualização do leque de possibilidades de carreira} & 
+    Ao final da jornada, o sistema deve apresentar ao aluno um conjunto de áreas e carreiras sugeridas com base nas suas respostas --- nunca um diagnóstico fechado. O resultado deve enfatizar que é um ponto de partida, não uma decisão definitiva. & 
+    RN-07 & 
+    Aluno & 
+    \textcolor{red!80!black}{\textbf{Alta}} \\
+    \hline
+
+    \textcolor{blue!70!black}{\textbf{RF-15}} & 
+    \textbf{Panorama completo da jornada} & 
+    O aluno deve poder visualizar, a qualquer momento, o histórico de suas respostas e sínteses de todas as trilhas já concluídas, permitindo revisão e reflexão. & 
+    RN-08 & 
+    Aluno & 
+    \textcolor{orange!80!black}{\textbf{Média}} \\
+    \hline
+
+    \textcolor{blue!70!black}{\textbf{RF-16}} & 
+    \textbf{Personalização de perfil e interesses} & 
+    O aluno deve poder configurar algumas informações de perfil (interesses declarados) utilizadas para contextualizar a jornada. & 
+    --- & 
+    Aluno & 
+    \textcolor{green!80!black}{\textbf{Baixa}} \\
+    \hline
+
+    \textcolor{blue!70!black}{\textbf{RF-17}} & 
+    \textbf{Histórico de testes e evolução} & 
+    O aluno deve poder consultar o histórico de jornadas anteriores (caso a instituição repita o processo), acompanhando sua evolução ao longo do tempo. & 
+    --- & 
+    Aluno & 
+    \textcolor{green!80!black}{\textbf{Baixa}} \\
+    \hline
+
+    \textcolor{blue!70!black}{\textbf{RF-18}} & 
+    \textbf{Visualização de agendamentos e feedbacks} & 
+    O aluno deve visualizar seus agendamentos de sessão e os feedbacks enviados pela psicóloga, em uma área dedicada no seu painel. & 
+    --- & 
+    Aluno & 
+    \textcolor{orange!80!black}{\textbf{Média}} \\
+    \hline
+    
+\end{longtable}
+}
+
+\subsection{Requisitos Não Funcionais}
+
+Enquanto os requisitos funcionais definem o que o sistema fará, os requisitos não funcionais especificam "como" ele deve operar, estabelecendo os atributos de qualidade, as restrições tecnológicas e as exigências de desempenho e segurança da aplicação.
+
+Para o SyncCarreira, a proteção da informação é um pilar crítico, dado o tratamento de dados de menores de idade. Nesse sentido, o sistema implementará controle de autenticação utilizando tokens JWT para impedir acessos cruzados entre perfis e adotará criptografia em repouso para os dados sensíveis, garantindo estrita conformidade com a Lei Geral de Proteção de Dados (LGPD) e permitindo a exclusão de registros a pedido da instituição. A arquitetura SaaS impõe também que haja um isolamento lógico completo dos dados, impedindo que informações de alunos e turmas sejam acessadas por outras instituições cadastradas.
+
+No aspecto de usabilidade e performance, o software requer uma interface responsiva (focada em mobile-first), acessível e intuitiva para o público jovem. As operações fundamentais devem manter um tempo de resposta inferior a 2 segundos e a disponibilidade do sistema deve ser garantida em 99\% durante o período letivo comercial. A sustentabilidade técnica do back-end será viabilizada pela utilização de uma arquitetura em camadas em Java com Spring Boot, aliada à documentação automática da API via Swagger/OpenAPI, assegurando manutenibilidade e escalabilidade para versões futuras.
+
+A Tabela 6 sistematiza as premissas não funcionais adotadas para o projeto.
+
+{\ABNTEXfontereduzida
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{|c|p{2.5cm}|p{4.5cm}|c|c|c|}
+    \caption[Requisitos Não Funcionais do SyncCarreira]{Requisitos não funcionais do SyncCarreira.}
+    \label{tab-requisitos-nao-funcionais} \\
+    \hline
+    
+    \textbf{ID} & 
+    \textbf{Título} & 
+    \textbf{Descrição} & 
+    \textbf{Regras} & 
+    \textbf{Ator} & 
+    \textbf{Prior.} \\
+    \hline
+    \endfirsthead
+
+    \caption[]{Requisitos não funcionais do SyncCarreira (continuação).} \\
+    \hline
+    \textbf{ID} & 
+    \textbf{Título} & 
+    \textbf{Descrição} & 
+    \textbf{Regras} & 
+    \textbf{Ator} & 
+    \textbf{Prior.} \\
+    \hline
+    \endhead
+
+    \hline
+    \multicolumn{6}{r}{\textit{Continua na próxima página...}} \\
+    \endfoot
+
+    \hline
+    \multicolumn{6}{l}{Fonte: Autoria própria (2026).} \\
+    \endlastfoot
+
+    \textcolor{blue!70!black}{\textbf{RNF-01}} & 
+    \textbf{Segurança --- autenticação e autorização} & 
+    O sistema deve implementar autenticação via token JWT com expiração configurável. O acesso a cada recurso deve ser validado pelo perfil do usuário (administrador, psicóloga, aluno), impedindo acesso cruzado entre perfis. & 
+    --- & 
+    Sistema & 
+    \textcolor{red!80!black}{\textbf{Alta}} \\
+    \hline
+    
+    \textcolor{blue!70!black}{\textbf{RNF-02}} & 
+    \textbf{Privacidade e proteção de dados (LGPD)} & 
+    Dados sensíveis de menores de idade (sínteses, respostas, perfil) devem ser armazenados com criptografia em repouso. O sistema deve permitir exclusão de dados a pedido da instituição, em conformidade com a LGPD. & 
+    --- & 
+    Sistema & 
+    \textcolor{red!80!black}{\textbf{Alta}} \\
+    \hline
+    
+    \textcolor{blue!70!black}{\textbf{RNF-03}} & 
+    \textbf{Desempenho --- tempo de resposta} & 
+    As operações principais (carregamento de trilha, salvamento de resposta, exibição do painel) devem responder em até 2 segundos em condições normais de uso. & 
+    --- & 
+    Sistema & 
+    \textcolor{orange!80!black}{\textbf{Média}} \\
+    \hline
+    
+    \textcolor{blue!70!black}{\textbf{RNF-04}} & 
+    \textbf{Usabilidade --- interface acessível e responsiva} & 
+    A interface deve ser responsiva (mobile-first), legível e navegável por jovens sem familiaridade técnica. A jornada do aluno deve ser intuitiva, sem necessidade de manual. & 
+    --- & 
+    Sistema & 
+    \textcolor{red!80!black}{\textbf{Alta}} \\
+    \hline
+    
+    \textcolor{blue!70!black}{\textbf{RNF-05}} & 
+    \textbf{Disponibilidade} & 
+    O sistema deve ter disponibilidade mínima de 99\% durante o horário comercial. & 
+    --- & 
+    Sistema & 
+    \textcolor{orange!80!black}{\textbf{Média}} \\
+    \hline
+
+    \textcolor{blue!70!black}{\textbf{RNF-06}} & 
+    \textbf{Manutenibilidade --- arquitetura em camadas} & 
+    O back-end deve seguir arquitetura em camadas (Controller, Service, Repository, Entity) com Spring Boot, garantindo separação de responsabilidades e facilidade de evolução. & 
+    --- & 
+    Sistema & 
+    \textcolor{orange!80!black}{\textbf{Média}} \\
+    \hline
+
+    \textcolor{blue!70!black}{\textbf{RNF-07}} & 
+    \textbf{Documentação de API} & 
+    Todas as rotas da API devem ser documentadas automaticamente via Swagger/OpenAPI, permitindo integração e testes sem dependência de documentação manual. & 
+    --- & 
+    Sistema & 
+    \textcolor{green!80!black}{\textbf{Baixa}} \\
+    \hline
+
+    \textcolor{blue!70!black}{\textbf{RNF-08}} & 
+    \textbf{Isolamento de dados por instituição} & 
+    Os dados de alunos, turmas e trilhas de uma instituição não devem ser acessíveis por outras instituições cadastradas na plataforma, garantindo isolamento lógico completo. & 
+    --- & 
+    Sistema & 
+    \textcolor{red!80!black}{\textbf{Alta}} \\
+    \hline
+
+\end{longtable}
+}
+
+\subsection{Casos de Uso}
+
+Os Casos de Uso descrevem o comportamento do sistema sob o ponto de vista de seus usuários, detalhando as funcionalidades oferecidas e as interações necessárias para o cumprimento dos objetivos de negócio. Para o sistema SyncCarreira, a especificação dos casos de uso foi estruturada em torno dos três perfis de atores principais que interagem com a plataforma: Administrador, Psicóloga e Aluno.
+
+O mapeamento das funcionalidades visa garantir que o software atenda às necessidades de automação da orientação vocacional, respeitando os níveis de acesso e o fluxo lógico do processo. Dentre as funções fundamentais, destaca-se a obrigatoriedade de autenticação no sistema para todos os atores, caracterizada pelo caso de uso base de Login, do qual todas as demais ações dependem para garantir a segurança e a identificação do perfil de acesso correspondente.
+
+{\ABNTEXfontereduzida
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{|p{4.5cm}|p{10.5cm}|}
+    \caption[Casos de Uso do SyncCarreira]{Casos de uso do SyncCarreira.}
+    \label{tab-casos-de-uso} \\
+    \hline
+    \endfirsthead
+
+    \caption[]{Casos de uso do SyncCarreira (continuação).} \\
+    \hline
+    \endhead
+
+    \hline
+    \multicolumn{2}{r}{\textit{Continua na próxima página...}} \\
+    \endfoot
+
+    \hline
+    \multicolumn{2}{l}{Fonte: Elaborado pelos autores (2026).} \\
+    \endlastfoot
+
+    \multicolumn{2}{|l|}{\textbf{UC01: Cadastrar e Gerenciar Instituições}} \\ \hline
+    \textbf{Ator Principal} & Administrador \\ \hline
+    \textbf{Atores Secundários} & Nenhum \\ \hline
+    \textbf{Descrição} & Permite ao Administrador cadastrar, editar, visualizar e desativar instituições (escolas ou ONGs) que utilizarão a plataforma SyncCarreira. \\ \hline
+    \textbf{Pré-condições} & 
+    \textbullet~ Administrador autenticado na plataforma (UC16). \newline
+    \textbullet~ Dados básicos da instituição disponíveis (nome, CNPJ, endereço, responsável). \\ \hline
+    \textbf{Pós-condições} & 
+    \textbullet~ Instituição registrada e ativa no sistema, podendo ter usuários vinculados. \newline
+    \textbullet~ Log de auditoria registrado com data, hora e ação realizada. \\ \hline
+    \textbf{Fluxo Principal} & 
+    1. Administrador acessa o módulo `Instituições' no painel administrativo. \newline
+    2. Sistema exibe a lista de instituições cadastradas com filtros de busca. \newline
+    3. Administrador clica em `Nova Instituição'. \newline
+    4. Sistema exibe formulário com campos: nome, CNPJ, tipo (escola/ONG), endereço, e-mail e telefone do responsável. \newline
+    5. Administrador preenche os campos obrigatórios e confirma o cadastro. \newline
+    6. Sistema valida os dados, salva o registro e exibe mensagem de sucesso. \newline
+    7. Nova instituição aparece listada com status `Ativa'. \\ \hline
+    \textbf{Fluxos Alternativos} & 
+    \textbf{FA01 -- Editar instituição existente} \newline
+    1. No passo 3, Administrador seleciona uma instituição da lista e clica em `Editar'. \newline
+    2. Sistema carrega os dados atuais no formulário. \newline
+    3. Administrador altera os campos desejados e confirma. \newline
+    4. Sistema salva as alterações e retorna à listagem atualizada.
+    
+    \textbf{FA02 -- Desativar instituição} \newline
+    1. Administrador seleciona a instituição e clica em `Desativar'. \newline
+    2. Sistema exibe confirmação alertando que usuários vinculados perderão acesso. \newline
+    3. Administrador confirma a ação. \newline
+    4. Sistema marca a instituição como inativa e bloqueia acessos vinculados. \\ \hline
+    \textbf{Fluxos de Exceção} & 
+    \textbf{FE01 -- CNPJ já cadastrado} \newline
+    1. No passo 6, sistema detecta CNPJ duplicado. \newline
+    2. Sistema exibe mensagem: `Este CNPJ já está vinculado a outra instituição.' \newline
+    3. Retorna ao passo 4 para correção.
+    
+    \textbf{FE02 -- Campos obrigatórios em branco} \newline
+    1. No passo 6, sistema identifica campo obrigatório não preenchido. \newline
+    2. Sistema destaca o campo em vermelho com mensagem de validação. \newline
+    3. Retorna ao passo 4. \\ \hline
+    \textbf{Relações UML} & $\ll$include$\gg$ UC16: Realizar Login \\ \hline
+
+    \multicolumn{2}{|l|}{\textbf{UC02: Gerenciar Usuários e Perfis de Acesso}} \\ \hline
+    \textbf{Ator Principal} & Administrador \\ \hline
+    \textbf{Atores Secundários} & Psicóloga, Aluno \\ \hline
+    \textbf{Descrição} & Permite ao Administrador criar, editar, vincular e desativar usuários na plataforma, definindo perfis de acesso (Administrador, Psicóloga, Aluno) e garantindo o sigilo entre instituições. \\ \hline
+    \textbf{Pré-condições} & 
+    \textbullet~ Administrador autenticado (UC16). \newline
+    \textbullet~ Ao menos uma instituição ativa cadastrada no sistema. \\ \hline
+    \textbf{Pós-condições} & 
+    \textbullet~ Usuário criado, vinculado a uma instituição e com perfil de acesso definido. \newline
+    \textbullet~ Credenciais de acesso enviadas ao e-mail do usuário cadastrado. \\ \hline
+    \textbf{Fluxo Principal} & 
+    1. Administrador acessa o módulo `Usuários'. \newline
+    2. Sistema exibe lista de usuários com filtros por instituição, perfil e status. \newline
+    3. Administrador clica em `Novo Usuário'. \newline
+    4. Sistema exibe formulário: nome, e-mail, perfil (Admin/Psicóloga/Aluno) e instituição. \newline
+    5. Administrador preenche os dados e confirma. \newline
+    6. Sistema cria o usuário, gera credenciais temporárias e envia e-mail de boas-vindas. \newline
+    7. Usuário aparece na listagem com status `Ativo'. \\ \hline
+    \textbf{Fluxos Alternativos} & 
+    \textbf{FA01 -- Editar perfil de usuário} \newline
+    1. Administrador seleciona usuário da lista e clica em `Editar'. \newline
+    2. Sistema carrega os dados no formulário. \newline
+    3. Administrador altera perfil ou instituição vinculada e confirma. \newline
+    4. Sistema atualiza permissões imediatamente.
+    
+    \textbf{FA02 -- Desativar usuário} \newline
+    1. Administrador seleciona usuário e clica em `Desativar'. \newline
+    2. Sistema exibe confirmação. \newline
+    3. Administrador confirma; sistema bloqueia acesso e mantém histórico de dados. \\ \hline
+    \textbf{Fluxos de Exceção} & 
+    \textbf{FE01 -- E-mail já cadastrado} \newline
+    1. Sistema detecta e-mail duplicado no passo 5. \newline
+    2. Exibe mensagem: `Este e-mail já está em uso por outro usuário.' \newline
+    3. Retorna ao formulário.
+    
+    \textbf{FE02 -- Falha no envio do e-mail} \newline
+    1. Sistema não consegue enviar e-mail de boas-vindas. \newline
+    2. Usuário é criado com sucesso, mas sistema exibe aviso sobre falha no envio. \newline
+    3. Administrador pode reenviar credenciais manualmente. \\ \hline
+    \textbf{Relações UML} & $\ll$include$\gg$ UC16: Realizar Login \\ \hline
+
+    \multicolumn{2}{|l|}{\textbf{UC03: Visualizar Painel de Monitoramento por Turma}} \\ \hline
+    \textbf{Ator Principal} & Psicóloga \\ \hline
+    \textbf{Atores Secundários} & Nenhum \\ \hline
+    \textbf{Descrição} & Permite à Psicóloga acompanhar em tempo real o progresso de cada aluno nas trilhas de orientação vocacional, visualizando status consolidado por turma. \\ \hline
+    \textbf{Pré-condições} & 
+    \textbullet~ Psicóloga autenticada (UC16). \newline
+    \textbullet~ Ao menos uma turma com alunos cadastrados e com progresso iniciado. \\ \hline
+    \textbf{Pós-condições} & 
+    \textbullet~ Psicóloga visualizou o status atual de cada aluno. \newline
+    \textbullet~ Nenhum dado é alterado --- operação somente leitura. \\ \hline
+    \textbf{Fluxo Principal} & 
+    1. Psicóloga acessa o módulo `Dashboard' no menu principal. \newline
+    2. Sistema exibe cartões de turmas vinculadas à instituição da Psicóloga e percentual de progresso geral da turma e por trilha. \newline
+    3. Psicóloga seleciona a turma desejada. \newline
+    4. Sistema carrega o painel com uma lista de todos os alunos, mostrando: nome, trilha atual, percentual de conclusão e data da última atividade. \newline
+    5. Psicóloga visualiza o painel e pode ordenar ou filtrar por status (Dúvida, estável, inatividade longa e concluído). \newline
+    6. Psicóloga clica em um aluno para ver o progresso detalhado individual. \\ \hline
+    \textbf{Fluxos Alternativos} & 
+    \textbf{FA01 -- Filtrar por trilha específica} \newline
+    1. No passo 5, Psicóloga aplica filtro por trilha (ex.: Autoconhecimento). \newline
+    2. Sistema recarrega o painel exibindo apenas alunos naquela trilha.
+    
+    \textbf{FA02 -- Caminho pelo Módulo ``Triagem''} \newline
+    1. No passo 3, a psicóloga seleciona o módulo ``Triagem'' e filtra por turma desejada. \newline
+    2. Sistema carrega o painel com uma lista dos alunos da turma. \\ \hline
+    \textbf{Fluxos de Exceção} & 
+    \textbf{FE01 -- Turma sem alunos cadastrados} \newline
+    1. No passo 4, sistema detecta que a turma não possui alunos. \newline
+    2. Exibe mensagem: `Nenhum aluno encontrado nesta turma.' \newline
+    3. Psicóloga pode selecionar outra turma. \\ \hline
+    \textbf{Relações UML} & 
+    $\ll$include$\gg$ UC16: Realizar Login \newline
+    $\ll$extend$\gg$ UC04: Visualizar Alunos com Flag de Dúvida (condição: existem alunos com flag ativa) \\ \hline
+
+    \multicolumn{2}{|l|}{\textbf{UC04: Visualizar Alunos com Flag de Dúvida}} \\ \hline
+    \textbf{Ator Principal} & Psicóloga \\ \hline
+    \textbf{Atores Secundários} & Nenhum \\ \hline
+    \textbf{Descrição} & Extensão do UC03. Quando há alunos que concluíram a jornada mas sinalizaram necessidade de apoio adicional, o painel exibe uma seção destacada com esses alunos para priorização do atendimento. \\ \hline
+    \textbf{Pré-condições} & 
+    \textbullet~ Psicóloga autenticada e visualizando o Painel de Monitoramento (UC03). \newline
+    \textbullet~ Ao menos um aluno concluiu todas as trilhas e ativou a flag de dúvida. \\ \hline
+    \textbf{Pós-condições} & 
+    \textbullet~ Psicóloga identificou os alunos prioritários para atendimento. \newline
+    \textbullet~ Psicóloga pode iniciar agendamento (UC08) ou enviar feedback (UC09) a partir desta tela. \\ \hline
+    \textbf{Fluxo Principal} & 
+    1. Durante a execução do UC03, sistema detecta alunos com flag de dúvida ativa. \newline
+    2. Sistema exibe seção `Atenção Necessária' no topo do painel, com destaque visual (ícone e cor diferenciados). \newline
+    3. Psicóloga visualiza a lista de alunos sinalizados com nome, data de conclusão da jornada e mensagem de dúvida registrada pelo aluno. \newline
+    4. Psicóloga clica em um aluno para acessar seu perfil completo e histórico de sínteses. \newline
+    5. Psicóloga decide a ação: agendar sessão (UC08) ou enviar feedback imediato (UC09). \\ \hline
+    \textbf{Fluxos Alternativos} & 
+    \textbf{FA01 -- Nenhuma flag ativa na turma selecionada} \newline
+    1. Sistema não exibe a seção `Atenção Necessária'. \newline
+    2. Painel do UC03 é exibido normalmente sem o bloco de flags. \\ \hline
+    \textbf{Fluxos de Exceção} & 
+    \textbf{FE01 -- Aluno removeu a flag antes da consulta} \newline
+    1. Sistema recarrega o painel e o aluno não aparece mais na seção de flags. \newline
+    2. Exibe mensagem informativa: `Lista de flags atualizada.' \\ \hline
+    \textbf{Relações UML} & 
+    $\ll$extend$\gg$ UC03: Visualizar Painel de Monitoramento por Turma \newline
+    $\ll$include$\gg$ UC16: Realizar Login \\ \hline
+
+    \multicolumn{2}{|l|}{\textbf{UC05: Criar e Customizar Perguntas e Trilhas}} \\ \hline
+    \textbf{Ator Principal} & Psicóloga \\ \hline
+    \textbf{Atores Secundários} & Nenhum \\ \hline
+    \textbf{Descrição} & Permite à Psicóloga criar novas perguntas reflexivas e customizar o conteúdo das quatro trilhas sequenciais (Autoconhecimento, Influências, Informação e Projeto de Futuro), adaptando a jornada ao contexto da sua instituição. \\ \hline
+    \textbf{Pré-condições} & 
+    \textbullet~ Psicóloga autenticada (UC16). \newline
+    \textbullet~ Estrutura base das trilhas já existente no sistema. \\ \hline
+    \textbf{Pós-condições} & 
+    \textbullet~ Novas perguntas ou configurações de trilha salvas e disponíveis para os alunos da instituição. \newline
+    \textbullet~ Histórico de versões da trilha registrado. \\ \hline
+    \textbf{Fluxo Principal} & 
+    1. Psicóloga acessa o módulo `Curadoria de Trilhas'. \newline
+    2. Sistema exibe as quatro trilhas com suas perguntas atuais. \newline
+    3. Psicóloga seleciona a trilha que deseja editar. \newline
+    4. Sistema exibe as perguntas existentes com opções de reordenar, editar ou excluir. \newline
+    5. Psicóloga clica em `Nova Pergunta'. \newline
+    6. Sistema exibe formulário: enunciado, tipo de resposta (texto livre, escala, múltipla escolha) e trilha de destino. \newline
+    7. Psicóloga preenche e salva a pergunta. \newline
+    8. Sistema adiciona a pergunta à trilha e confirma o salvamento. \\ \hline
+    \textbf{Fluxos Alternativos} & 
+    \textbf{FA01 -- Reordenar perguntas} \newline
+    1. No passo 4, Psicóloga arrasta e solta as perguntas para reordenar. \newline
+    2. Sistema salva a nova ordem automaticamente.
+    
+    \textbf{FA02 -- Excluir pergunta} \newline
+    1. Psicóloga clica no ícone de exclusão de uma pergunta. \newline
+    2. Sistema exibe confirmação, alertando se há respostas registradas. \newline
+    3. Psicóloga confirma; sistema inativa a pergunta (não apaga para preservar histórico). \\ \hline
+    \textbf{Fluxos de Exceção} & 
+    \textbf{FE01 -- Enunciado em branco} \newline
+    1. Sistema valida o formulário no passo 7 e detecta enunciado vazio. \newline
+    2. Exibe mensagem de erro e retorna ao formulário. \\ \hline
+    \textbf{Relações UML} & $\ll$include$\gg$ UC16: Realizar Login \\ \hline
+
+    \multicolumn{2}{|l|}{\textbf{UC06: Cadastrar Links e Fontes Externas (Curadoria de Conteúdo)}} \\ \hline
+    \textbf{Ator Principal} & Psicóloga \\ \hline
+    \textbf{Atores Secundários} & Aluno (consulta indireta) \\ \hline
+    \textbf{Descrição} & Permite à Psicóloga cadastrar e organizar links de fontes externas --- vídeos, artigos, sites de profissões --- que serão recomendados aos alunos na trilha de Informação. \\ \hline
+    \textbf{Pré-condições} & 
+    \textbullet~ Psicóloga autenticada (UC16). \newline
+    \textbullet~ Links e fontes previamente selecionados e validados pela Psicóloga. \\ \hline
+    \textbf{Pós-condições} & 
+    \textbullet~ Links cadastrados e disponíveis para exibição na trilha de Informação para os alunos. \newline
+    \textbullet~ Conteúdo organizado por categoria/área profissional. \\ \hline
+    \textbf{Fluxo Principal} & 
+    1. Psicóloga acessa o módulo `Biblioteca de Conteúdo'. \newline
+    2. Sistema exibe lista de links cadastrados com filtros por categoria. \newline
+    3. Psicóloga clica em `Adicionar Link'. \newline
+    4. Sistema exibe formulário: URL, título descritivo, categoria (área profissional) e descrição curta. \newline
+    5. Psicóloga preenche os campos e confirma. \newline
+    6. Sistema valida a URL, salva o registro e exibe na lista atualizada. \\ \hline
+    \textbf{Fluxos Alternativos} & 
+    \textbf{FA01 -- Editar link cadastrado} \newline
+    1. Psicóloga seleciona um link existente e clica em `Editar'. \newline
+    2. Sistema carrega os dados no formulário. \newline
+    3. Psicóloga atualiza os campos e salva.
+    
+    \textbf{FA02 -- Remover link} \newline
+    1. Psicóloga seleciona o link e clica em `Remover'. \newline
+    2. Sistema exibe confirmação. \newline
+    3. Psicóloga confirma; link é removido da biblioteca e da trilha. \\ \hline
+    \textbf{Fluxos de Exceção} & 
+    \textbf{FE01 -- URL inválida ou inacessível} \newline
+    1. Sistema tenta acessar a URL no passo 6 e detecta erro de conexão. \newline
+    2. Exibe aviso: `A URL informada parece estar inacessível. Deseja salvar mesmo assim?' \newline
+    3. Psicóloga decide se salva ou corrige a URL. \\ \hline
+    \textbf{Relações UML} & $\ll$include$\gg$ UC16: Realizar Login \\ \hline
+
+    \multicolumn{2}{|l|}{\textbf{UC07: Emitir Relatórios de Turma e Individuais}} \\ \hline
+    \textbf{Ator Principal} & Psicóloga \\ \hline
+    \textbf{Atores Secundários} & Nenhum \\ \hline
+    \textbf{Descrição} & Permite à Psicóloga gerar relatórios sobre o progresso e resultados dos alunos, tanto no nível individual quanto consolidado por turma, para apoiar tomadas de decisão e registros institucionais. \\ \hline
+    \textbf{Pré-condições} & 
+    \textbullet~ Psicóloga autenticada (UC16). \newline
+    \textbullet~ Ao menos um aluno com progresso registrado no sistema. \\ \hline
+    \textbf{Pós-condições} & 
+    \textbullet~ Relatório gerado e disponível para download em formato PDF. \newline
+    \textbullet~ Dados sensíveis exibidos respeitando as regras de sigilo configuradas. \\ \hline
+    \textbf{Fluxo Principal} & 
+    1. Psicóloga acessa o módulo `Relatórios'. \newline
+    2. Sistema exibe opções: Relatório Individual ou Relatório de Turma. \newline
+    3. Psicóloga seleciona o tipo de relatório. \newline
+    4. Sistema exibe filtros: turma, aluno (se individual), período e trilhas. \newline
+    5. Psicóloga configura os filtros e clica em `Gerar Relatório'. \newline
+    6. Sistema processa os dados e exibe pré-visualização do relatório. \newline
+    7. Psicóloga confirma e clica em `Baixar PDF'. \newline
+    8. Sistema gera e disponibiliza o arquivo para download. \\ \hline
+    \textbf{Fluxos Alternativos} & 
+    \textbf{FA01 -- Relatório de turma consolidado} \newline
+    1. No passo 3, Psicóloga seleciona `Turma'. \newline
+    2. Sistema agrega dados de todos os alunos da turma selecionada. \newline
+    3. Relatório exibe médias, distribuição de status e destaques por trilha. \\ \hline
+    \textbf{Fluxos de Exceção} & 
+    \textbf{FE01 -- Nenhum dado no período selecionado} \newline
+    1. Sistema detecta ausência de registros para os filtros aplicados. \newline
+    2. Exibe mensagem: `Nenhum dado encontrado para o período e turma selecionados.' \newline
+    3. Psicóloga ajusta os filtros. \\ \hline
+    \textbf{Relações UML} & $\ll$include$\gg$ UC16: Realizar Login \\ \hline
+
+    \multicolumn{2}{|l|}{\textbf{UC08: Agendar Sessões de Orientação}} \\ \hline
+    \textbf{Ator Principal} & Psicóloga \\ \hline
+    \textbf{Atores Secundários} & Aluno \\ \hline
+    \textbf{Descrição} & Permite à Psicóloga criar e gerenciar agendamentos de sessões de orientação vocacional, individuais ou em grupo, que serão visíveis para os alunos convocados (UC15). \\ \hline
+    \textbf{Pré-condições} & 
+    \textbullet~ Psicóloga autenticada (UC16). \newline
+    \textbullet~ Ao menos um aluno ativo vinculado à turma da Psicóloga. \\ \hline
+    \textbf{Pós-condições} & 
+    \textbullet~ Sessão agendada e visível para os alunos convocados em UC15. \newline
+    \textbullet~ Notificação enviada por e-mail aos participantes. \\ \hline
+    \textbf{Fluxo Principal} & 
+    1. Psicóloga acessa o módulo `Agenda'. \newline
+    2. Sistema exibe calendário com agendamentos existentes. \newline
+    3. Psicóloga clica em uma data/horário disponível e seleciona `Novo Agendamento'. \newline
+    4. Sistema exibe formulário: tipo (individual/grupo), data, hora, duração, aluno(s) e observações. \newline
+    5. Psicóloga preenche os dados e confirma. \newline
+    6. Sistema salva o agendamento, notifica os alunos por e-mail e exibe confirmação. \\ \hline
+    \textbf{Fluxos Alternativos} & 
+    \textbf{FA01 -- Reagendar sessão existente} \newline
+    1. Psicóloga clica em uma sessão existente no calendário. \newline
+    2. Sistema abre o formulário com os dados atuais. \newline
+    3. Psicóloga altera data/hora e confirma. \newline
+    4. Sistema atualiza o registro e reenvia notificação aos participantes.
+    
+    \textbf{FA02 -- Cancelar sessão} \newline
+    1. Psicóloga seleciona a sessão e clica em `Cancelar'. \newline
+    2. Sistema exibe confirmação e campo para justificativa. \newline
+    3. Psicóloga confirma; sistema cancela e notifica os alunos. \\ \hline
+    \textbf{Fluxos de Exceção} & 
+    \textbf{FE01 -- Conflito de horário} \newline
+    1. Sistema detecta que o aluno já tem sessão no horário selecionado. \newline
+    2. Exibe aviso: `Conflito de horário detectado para [nome do aluno].' \newline
+    3. Psicóloga ajusta o horário ou prossegue ciente do conflito. \\ \hline
+    \textbf{Relações UML} & $\ll$include$\gg$ UC16: Realizar Login \\ \hline
+
+    \multicolumn{2}{|l|}{\textbf{UC09: Enviar Feedback Personalizado ao Aluno}} \\ \hline
+    \textbf{Ator Principal} & Psicóloga \\ \hline
+    \textbf{Atores Secundários} & Aluno \\ \hline
+    \textbf{Descrição} & Permite à Psicóloga redigir e enviar mensagens de feedback personalizadas para alunos específicos, comentando suas sínteses e orientando os próximos passos da jornada. \\ \hline
+    \textbf{Pré-condições} & 
+    \textbullet~ Psicóloga autenticada (UC16). \newline
+    \textbullet~ Aluno com ao menos uma síntese registrada no sistema. \\ \hline
+    \textbf{Pós-condições} & 
+    \textbullet~ Feedback enviado e disponível para o aluno em UC15. \newline
+    \textbullet~ Registro do feedback mantido no histórico do aluno. \\ \hline
+    \textbf{Fluxo Principal} & 
+    1. Psicóloga acessa o perfil de um aluno (via UC03 ou UC04). \newline
+    2. Sistema exibe o histórico de sínteses e feedbacks anteriores. \newline
+    3. Psicóloga clica em `Enviar Feedback'. \newline
+    4. Sistema exibe editor de texto com campo para selecionar a síntese de referência. \newline
+    5. Psicóloga redige o feedback e confirma o envio. \newline
+    6. Sistema salva o feedback, vincula à síntese correspondente e notifica o aluno por e-mail. \\ \hline
+    \textbf{Fluxos Alternativos} & 
+    \textbf{FA01 -- Editar feedback já enviado} \newline
+    1. Psicóloga localiza um feedback anterior e clica em `Editar'. \newline
+    2. Sistema abre o editor com o conteúdo existente. \newline
+    3. Psicóloga edita e salva; aluno é notificado da atualização. \\ \hline
+    \textbf{Fluxos de Exceção} & 
+    \textbf{FE01 -- Campo de feedback em branco} \newline
+    1. Sistema valida o conteúdo no passo 5 e detecta campo vazio. \newline
+    2. Exibe mensagem: `O feedback não pode ser enviado em branco.' \newline
+    3. Retorna ao editor. \\ \hline
+    \textbf{Relações UML} & $\ll$include$\gg$ UC16: Realizar Login \\ \hline
+
+    \multicolumn{2}{|l|}{\textbf{UC10: Personalizar Perfil e Interesses Iniciais}} \\ \hline
+    \textbf{Ator Principal} & Aluno \\ \hline
+    \textbf{Atores Secundários} & Nenhum \\ \hline
+    \textbf{Descrição} & Permite ao Aluno configurar seu perfil na plataforma e indicar interesses e áreas de curiosidade iniciais, que servirão como ponto de partida para a curadoria de conteúdo nas trilhas. \\ \hline
+    \textbf{Pré-condições} & 
+    \textbullet~ Aluno autenticado (UC16). \newline
+    \textbullet~ Primeiro acesso ou necessidade de atualização do perfil. \\ \hline
+    \textbf{Pós-condições} & 
+    \textbullet~ Perfil atualizado com interesses registrados. \newline
+    \textbullet~ Sistema ajusta as sugestões de conteúdo com base nos interesses informados. \\ \hline
+    \textbf{Fluxo Principal} & 
+    1. Aluno acessa a seção `Meu Perfil'. \newline
+    2. Sistema exibe formulário com foto, nome preferido, bio curta e lista de áreas de interesse. \newline
+    3. Aluno seleciona entre 3 e 5 áreas de interesse de uma lista predefinida. \newline
+    4. Aluno adiciona uma bio opcional (texto livre, até 300 caracteres). \newline
+    5. Aluno confirma as alterações. \newline
+    6. Sistema salva o perfil e redireciona para a tela inicial da jornada. \\ \hline
+    \textbf{Fluxos Alternativos} & 
+    \textbf{FA01 -- Alterar interesses durante a jornada} \newline
+    1. Aluno retorna ao perfil após já ter iniciado as trilhas. \newline
+    2. Sistema permite edição dos interesses com aviso de que isso pode alterar sugestões. \newline
+    3. Aluno confirma; sistema atualiza as recomendações. \\ \hline
+    \textbf{Fluxos de Exceção} & 
+    \textbf{FE01 -- Menos de 3 interesses selecionados} \newline
+    1. Sistema valida no passo 5 e detecta seleção insuficiente. \newline
+    2. Exibe mensagem: `Selecione ao menos 3 áreas de interesse para continuar.' \newline
+    3. Retorna ao passo 3. \\ \hline
+    \textbf{Relações UML} & $\ll$include$\gg$ UC16: Realizar Login \\ \hline
+
+    \multicolumn{2}{|l|}{\textbf{UC11: Percorrer Trilhas Sequenciais Intertravadas}} \\ \hline
+    \textbf{Ator Principal} & Aluno \\ \hline
+    \textbf{Atores Secundários} & Nenhum \\ \hline
+    \textbf{Descrição} & Permite ao Aluno navegar pelas quatro trilhas sequenciais de orientação vocacional: Autoconhecimento, Influências, Informação e Projeto de Futuro. O acesso a cada trilha depende da conclusão da anterior (intertravamento). \\ \hline
+    \textbf{Pré-condições} & 
+    \textbullet~ Aluno autenticado (UC16). \newline
+    \textbullet~ Perfil configurado (UC10 concluído). \newline
+    \textbullet~ Para trilhas 2, 3 e 4: trilha anterior concluída e síntese registrada (UC12). \\ \hline
+    \textbf{Pós-condições} & 
+    \textbullet~ Atividades da trilha respondidas e salvas. \newline
+    \textbullet~ Próxima trilha desbloqueada após síntese registrada (UC12). \\ \hline
+    \textbf{Fluxo Principal} & 
+    1. Aluno acessa a tela `Minha Jornada'. \newline
+    2. Sistema exibe as quatro trilhas com status: Disponível, Em andamento, Bloqueada ou Concluída. \newline
+    3. Aluno clica na trilha disponível/em andamento. \newline
+    4. Sistema carrega as perguntas e atividades reflexivas da trilha. \newline
+    5. Aluno responde às perguntas em seu próprio ritmo, podendo salvar e continuar depois. \newline
+    6. Aluno conclui todas as atividades da trilha. \newline
+    7. Sistema exibe tela de encerramento da trilha e direciona para o registro de síntese (UC12). \\ \hline
+    \textbf{Fluxos Alternativos} & 
+    \textbf{FA01 -- Salvar progresso parcial} \newline
+    1. Aluno clica em `Salvar e sair' antes de concluir a trilha. \newline
+    2. Sistema salva o progresso parcial. \newline
+    3. No próximo acesso, trilha retoma do ponto onde o aluno parou. \\ \hline
+    \textbf{Fluxos de Exceção} & 
+    \textbf{FE01 -- Tentativa de acessar trilha bloqueada} \newline
+    1. Aluno tenta clicar em uma trilha bloqueada. \newline
+    2. Sistema exibe mensagem: `Conclua a trilha anterior e registre sua síntese para desbloquear esta etapa.' \newline
+    3. Aluno é redirecionado para a trilha atual. \\ \hline
+    \textbf{Relações UML} & 
+    $\ll$include$\gg$ UC16: Realizar Login \newline
+    $\ll$include$\gg$ UC12: Registrar Síntese da Trilha (incluso ao final de cada trilha) \\ \hline
+
+    \multicolumn{2}{|l|}{\textbf{UC12: Registrar Síntese Textual ao Final de Cada Trilha}} \\ \hline
+    \textbf{Ator Principal} & Aluno \\ \hline
+    \textbf{Atores Secundários} & Psicóloga (leitura posterior) \\ \hline
+    \textbf{Descrição} & Ao concluir cada trilha, o Aluno registra uma síntese reflexiva em texto livre, consolidando seus aprendizados. Este registro é pré-condição para desbloquear a próxima trilha e fica disponível para leitura e feedback da Psicóloga. \\ \hline
+    \textbf{Pré-condições} & 
+    \textbullet~ Aluno autenticado (UC16). \newline
+    \textbullet~ Todas as atividades da trilha atual concluídas (UC11). \\ \hline
+    \textbf{Pós-condições} & 
+    \textbullet~ Síntese salva e vinculada à trilha concluída. \newline
+    \textbullet~ Próxima trilha desbloqueada. \newline
+    \textbullet~ Síntese disponível para a Psicóloga em UC09. \\ \hline
+    \textbf{Fluxo Principal} & 
+    1. Ao concluir UC11, sistema exibe automaticamente a tela `Registrar Síntese'. \newline
+    2. Sistema apresenta prompt reflexivo personalizado para a trilha concluída (ex.: `O que você descobriu sobre si mesmo nesta trilha?'). \newline
+    3. Aluno redige sua síntese no campo de texto livre. \newline
+    4. Aluno clica em `Salvar Síntese'. \newline
+    5. Sistema valida que o texto possui ao menos 50 caracteres. \newline
+    6. Sistema salva a síntese, registra a data e desbloqueia a próxima trilha. \newline
+    7. Exibe mensagem de parabéns e apresenta a trilha seguinte. \\ \hline
+    \textbf{Fluxos Alternativos} & 
+    \textbf{FA01 -- Editar síntese antes da revisão da Psicóloga} \newline
+    1. Aluno retorna ao histórico e localiza a síntese salva. \newline
+    2. Sistema permite edição enquanto a Psicóloga ainda não enviou feedback. \newline
+    3. Aluno edita e salva novamente. \\ \hline
+    \textbf{Fluxos de Exceção} & 
+    \textbf{FE01 -- Síntese muito curta} \newline
+    1. Sistema detecta texto com menos de 50 caracteres no passo 5. \newline
+    2. Exibe aviso: `Sua síntese está muito curta. Tente elaborar um pouco mais sua reflexão.' \newline
+    3. Retorna ao editor sem bloquear o aluno indefinidamente. \\ \hline
+    \textbf{Relações UML} & 
+    $\ll$include$\gg$ UC11: Percorrer Trilhas Sequenciais (pré-condição estrutural) \newline
+    $\ll$include$\gg$ UC16: Realizar Login \\ \hline
+
+    \multicolumn{2}{|l|}{\textbf{UC13: Visualizar Leque de Possibilidades de Carreira}} \\ \hline
+    \textbf{Ator Principal} & Aluno \\ \hline
+    \textbf{Atores Secundários} & Nenhum \\ \hline
+    \textbf{Descrição} & Após a conclusão das quatro trilhas, o sistema apresenta ao Aluno um conjunto personalizado de áreas e profissões alinhadas ao seu perfil construído ao longo da jornada --- não um diagnóstico único, mas um leque de possibilidades. \\ \hline
+    \textbf{Pré-condições} & 
+    \textbullet~ Aluno autenticado (UC16). \newline
+    \textbullet~ Todas as quatro trilhas concluídas e sínteses registradas (UC12). \\ \hline
+    \textbf{Pós-condições} & 
+    \textbullet~ Aluno visualizou seu leque de carreiras. \newline
+    \textbullet~ Aluno pode explorar os links de fontes externas cadastrados (UC06) para cada área sugerida. \\ \hline
+    \textbf{Fluxo Principal} & 
+    1. Após conclusão da quarta trilha, sistema redireciona automaticamente para `Meu Leque de Carreiras'. \newline
+    2. Sistema processa as respostas e sínteses do aluno e gera uma lista de 5 a 10 áreas profissionais compatíveis. \newline
+    3. Sistema exibe as áreas com: nome da profissão, breve descrição, nível de compatibilidade (\%) e links de conteúdo curado (UC06). \newline
+    4. Aluno explora cada área clicando para ver mais detalhes. \newline
+    5. Aluno pode marcar áreas de maior interesse para referência futura. \newline
+    6. Aluno pode ativar a flag de dúvida caso queira suporte adicional da Psicóloga. \\ \hline
+    \textbf{Fluxos Alternativos} & 
+    \textbf{FA01 -- Acessar o leque posteriormente} \newline
+    1. Aluno retorna à plataforma após sessão anterior. \newline
+    2. Acessa `Meus Resultados' no menu. \newline
+    3. Sistema carrega o leque já gerado. \\ \hline
+    \textbf{Fluxos de Exceção} & 
+    \textbf{FE01 -- Trilhas não concluídas} \newline
+    1. Aluno tenta acessar `Meus Resultados' sem ter concluído todas as trilhas. \newline
+    2. Sistema exibe: `Complete todas as trilhas para visualizar seu leque de carreiras.' \newline
+    3. Sistema exibe barra de progresso indicando trilhas pendentes. \\ \hline
+    \textbf{Relações UML} & $\ll$include$\gg$ UC16: Realizar Login \\ \hline
+
+    \multicolumn{2}{|l|}{\textbf{UC14: Consultar Histórico de Respostas e Evolução}} \\ \hline
+    \textbf{Ator Principal} & Aluno \\ \hline
+    \textbf{Atores Secundários} & Nenhum \\ \hline
+    \textbf{Descrição} & Permite ao Aluno revisar todas as suas respostas, sínteses e evoluções registradas ao longo da jornada nas quatro trilhas, promovendo a autorreflexão sobre o próprio processo. \\ \hline
+    \textbf{Pré-condições} & 
+    \textbullet~ Aluno autenticado (UC16). \newline
+    \textbullet~ Ao menos uma atividade ou síntese registrada no sistema. \\ \hline
+    \textbf{Pós-condições} & 
+    \textbullet~ Aluno visualizou seu histórico. Nenhum dado é alterado --- operação somente leitura. \\ \hline
+    \textbf{Fluxo Principal} & 
+    1. Aluno acessa `Meu Histórico' no menu lateral. \newline
+    2. Sistema exibe linha do tempo com as trilhas percorridas e datas de conclusão. \newline
+    3. Aluno seleciona uma trilha para visualizar suas respostas e síntese. \newline
+    4. Sistema exibe as perguntas com as respectivas respostas do aluno e a síntese registrada. \newline
+    5. Aluno pode navegar entre trilhas para comparar sua evolução. \newline
+    6. Sistema exibe feedbacks da Psicóloga vinculados a cada síntese (se houver). \\ \hline
+    \textbf{Fluxos Alternativos} & 
+    \textbf{FA01 -- Filtrar por trilha} \newline
+    1. Aluno usa o filtro lateral para selecionar uma trilha específica. \newline
+    2. Sistema carrega apenas o conteúdo daquela trilha. \\ \hline
+    \textbf{Fluxos de Exceção} & 
+    \textbf{FE01 -- Nenhum histórico disponível} \newline
+    1. Sistema detecta que o aluno não possui nenhuma resposta registrada. \newline
+    2. Exibe mensagem: `Você ainda não iniciou nenhuma trilha. Comece sua jornada agora!' \newline
+    3. Exibe botão de atalho para a tela `Minha Jornada'. \\ \hline
+    \textbf{Relações UML} & $\ll$include$\gg$ UC16: Realizar Login \\ \hline
+
+    \multicolumn{2}{|l|}{\textbf{UC15: Visualizar Agendamentos e Feedbacks da Psicóloga}} \\ \hline
+    \textbf{Ator Principal} & Aluno \\ \hline
+    \textbf{Atores Secundários} & Psicóloga \\ \hline
+    \textbf{Descrição} & Permite ao Aluno consultar os agendamentos de sessões de orientação criados pela Psicóloga (UC08) e os feedbacks personalizados enviados para suas sínteses (UC09). \\ \hline
+    \textbf{Pré-condições} & 
+    \textbullet~ Aluno autenticado (UC16). \newline
+    \textbullet~ Ao menos um agendamento criado (UC08) ou feedback enviado (UC09) pela Psicóloga. \\ \hline
+    \textbf{Pós-condições} & 
+    \textbullet~ Aluno visualizou seus agendamentos e/ou feedbacks. Operação somente leitura. \\ \hline
+    \textbf{Fluxo Principal} & 
+    1. Aluno acessa `Minhas Notificações' ou `Agenda' no menu. \newline
+    2. Sistema exibe duas abas: `Sessões Agendadas' e `Feedbacks Recebidos'. \newline
+    3. Na aba `Sessões', sistema lista os agendamentos com data, hora, tipo (individual/grupo) e observações da Psicóloga. \newline
+    4. Na aba `Feedbacks', sistema lista os feedbacks recebidos com a síntese de referência e a mensagem da Psicóloga. \newline
+    5. Aluno clica em um feedback para expandir e ler o conteúdo completo. \newline
+    6. Sistema marca o feedback como `Lido' automaticamente. \\ \hline
+    \textbf{Fluxos Alternativos} & 
+    \textbf{FA01 -- Nenhum agendamento futuro} \newline
+    1. Sistema exibe mensagem na aba `Sessões': `Você não possui sessões agendadas no momento.' \newline
+    2. Aluno permanece na tela podendo verificar a aba de feedbacks. \\ \hline
+    \textbf{Fluxos de Exceção} & 
+    \textbf{FE01 -- Sessão cancelada pela Psicóloga} \newline
+    1. Sistema exibe o agendamento com status `Cancelado' e justificativa fornecida. \newline
+    2. Aluno é notificado via e-mail previamente. \\ \hline
+    \textbf{Relações UML} & $\ll$include$\gg$ UC16: Realizar Login \\ \hline
+
+    \multicolumn{2}{|l|}{\textbf{UC16: Realizar Login (Autenticação)}} \\ \hline
+    \textbf{Ator Principal} & Administrador, Psicóloga, Aluno \\ \hline
+    \textbf{Atores Secundários} & Nenhum \\ \hline
+    \textbf{Descrição} & Caso de uso base incluído por todos os demais. Garante a autenticação segura de qualquer usuário na plataforma SyncCarreira, verificando credenciais e estabelecendo a sessão de acordo com o perfil de acesso. \\ \hline
+    \textbf{Pré-condições} & 
+    \textbullet~ Usuário cadastrado no sistema com credenciais ativas. \newline
+    \textbullet~ Acesso à internet e disponibilidade da plataforma. \\ \hline
+    \textbf{Pós-condições} & 
+    \textbullet~ Sessão autenticada estabelecida com permissões correspondentes ao perfil do usuário. \newline
+    \textbullet~ Usuário redirecionado para o painel correspondente ao seu papel (Admin, Psicóloga ou Aluno). \\ \hline
+    \textbf{Fluxo Principal} & 
+    1. Usuário acessa a URL da plataforma SyncCarreira. \newline
+    2. Sistema exibe tela de login com campos de e-mail e senha. \newline
+    3. Usuário informa suas credenciais e clica em `Entrar'. \newline
+    4. Sistema valida as credenciais contra o banco de dados. \newline
+    5. Sistema identifica o perfil do usuário (Admin/Psicóloga/Aluno) e a instituição vinculada. \newline
+    6. Sistema estabelece sessão segura e redireciona para o painel correspondente. \\ \hline
+    \textbf{Fluxos Alternativos} & 
+    \textbf{FA01 -- Recuperação de senha} \newline
+    1. Usuário clica em `Esqueci minha senha'. \newline
+    2. Sistema solicita o e-mail cadastrado. \newline
+    3. Sistema envia link de redefinição com validade de 1 hora. \newline
+    4. Usuário acessa o link, define nova senha e é redirecionado para o login. \\ \hline
+    \textbf{Fluxos de Exceção} & 
+    \textbf{FE01 -- Credenciais inválidas} \newline
+    1. Sistema detecta e-mail ou senha incorretos no passo 4. \newline
+    2. Exibe mensagem genérica: `E-mail ou senha inválidos.' (sem indicar qual campo está errado, por segurança). \newline
+    3. Após 5 tentativas, sistema bloqueia temporariamente o acesso por 15 minutos.
+    
+    \textbf{FE02 -- Usuário inativo} \newline
+    1. Sistema detecta conta desativada pelo Administrador. \newline
+    2. Exibe mensagem: `Sua conta está inativa. Entre em contato com o administrador.' \newline
+    3. Acesso negado. \\ \hline
+    \textbf{Relações UML} & $\ll$include$\gg$ por todos os demais casos de uso (UC01 a UC15) \\ \hline
+
+\end{longtable}
+}
+
+Abaixo estão descritos e organizados em tópicos os casos de uso do sistema, agrupados por seus respectivos atores principais.
+
+\vspace{\baselineskip}
+\noindent{Atores Globais do Sistema}
+\vspace{-0.5\baselineskip}
+\begin{itemize}
+    \item UC16: Realizar \textit{login} (Autenticação): Caso de uso base que garante a autenticação segura de qualquer usuário (Administrador, Psicóloga ou Aluno) na plataforma SyncCarreira. Ele verifica as credenciais cadastradas e estabelece a sessão de acordo com as permissões do perfil de acesso correspondente.
+\end{itemize}
+
+\vspace{\baselineskip}
+\noindent{Ator: Administrador}
+\vspace{-0.5\baselineskip}
+\begin{itemize}
+    \item UC01: Cadastrar e Gerenciar Instituições: Permite ao Administrador cadastrar, editar, visualizar e desativar instituições (escolas ou ONGs) que utilizarão a plataforma SyncCarreira.
+    \item UC02: Gerenciar Usuários e Perfis de Acesso: Permite ao Administrador criar, editar, vincular e desativar usuários na plataforma, definindo os perfis de acesso (Administrador, Psicóloga, Aluno) e garantindo o isolamento lógico e o sigilo entre as instituições.
+\end{itemize}
+
+\vspace{\baselineskip}
+\noindent{Ator: Psicóloga}
+\vspace{-0.5\baselineskip}
+\begin{itemize}
+    \item UC03: Visualizar Painel de Monitoramento por Turma: Permite à profissional acompanhar em tempo real o progresso de cada aluno nas trilhas de orientação vocacional, visualizando o status consolidado de toda a turma.
+    \item UC04: Visualizar Alunos com Flag de Dúvida: Trata-se de uma extensão do painel de monitoramento, onde o sistema exibe uma seção destacada com os alunos que concluíram a jornada, mas sinalizaram necessidade de apoio adicional, facilitando a priorização do atendimento clínico.
+    \item UC05: Criar e Customizar Perguntas e Trilhas: Permite à Psicóloga criar novas perguntas reflexivas e customizar o conteúdo das quatro trilhas sequenciais (Autoconhecimento, Influências, Informação e Projeto de Futuro), adaptando a jornada ao contexto específico de sua instituição.
+    \item UC06: Cadastrar Links e Fontes Externas (Curadoria de Conteúdo): Permite o cadastro e a organização de links de fontes externas confiáveis (como vídeos, artigos e sites de profissões), que serão recomendados aos alunos durante a trilha de Informação.
+    \item UC07: Emitir Relatórios de Turma e Individuais: Permite gerar e baixar relatórios em PDF sobre o progresso e os resultados dos alunos, tanto de forma individual quanto consolidada por turma, respeitando as regras de sigilo configuradas.
+    \item UC08: Agendar Sessões de Orientação: Permite a criação e o gerenciamento de agendamentos para sessões de orientação vocacional, individuais ou em grupo, enviando notificações aos alunos convocados.
+    \item UC09: Enviar Feedback Personalizado ao Aluno: Permite à Psicóloga redigir e enviar mensagens de feedback detalhadas e personalizadas para alunos específicos, comentando suas sínteses reflexivas e orientando os próximos passos.
+\end{itemize}
+
+\vspace{\baselineskip}
+\noindent{Ator: Aluno}
+\vspace{-0.5\baselineskip}
+\begin{itemize}
+    \item UC10: Personalizar Perfil e Interesses Iniciais: Permite ao Aluno configurar seu perfil na plataforma, informando interesses e áreas de curiosidade iniciais, informações que servirão de base para a curadoria de conteúdo.
+    \item UC11: Percorrer Trilhas Sequenciais Intertravadas: Permite ao Aluno navegar pelas quatro trilhas de orientação vocacional (Autoconhecimento, Influências, Informação e Projeto de Futuro), em que o sistema exige a conclusão de uma etapa anterior para desbloquear a seguinte.
+    \item UC12: Registrar Síntese Textual ao Final de Cada Trilha: Como requisito obrigatório para avançar na jornada, o Aluno deve registrar uma síntese reflexiva em texto livre ao final de cada trilha concluída, consolidando os aprendizados daquela etapa.
+    \item UC13: Visualizar Leque de Possibilidades de Carreira: Após a conclusão de todas as trilhas, o sistema apresenta ao estudante um conjunto personalizado de áreas e profissões alinhadas ao seu perfil, atuando como um leque de possibilidades e não como um diagnóstico engessado.
+    \item UC14: Consultar Histórico de Respostas e Evolução: Permite ao Aluno revisar todas as respostas fornecidas, sínteses textuais elaboradas e evoluções registradas, promovendo a autorreflexão sobre seu próprio processo de descoberta.
+    \item UC15: Visualizar Agendamentos e Feedbacks da Psicóloga: Permite ao Aluno consultar em seu painel as sessões de orientação marcadas e os feedbacks textuais enviados pela Psicóloga sobre o seu desempenho nas trilhas.
+\end{itemize}
+
+\subsubsection{Diagrama de casos de uso}
+
+O diagrama de casos de uso constitui a representação visual das interações mapeadas na seção anterior, fornecendo uma visão arquitetural do comportamento do sistema a partir da perspectiva de quem o utiliza. Em trabalhos acadêmicos e projetos de Engenharia de Software, esse diagrama é essencial para validar as fronteiras da aplicação e os relacionamentos de dependência entre as funcionalidades.
+No diagrama projetado para o sistema SyncCarreira, a hierarquia de usuários foi estruturada utilizando o conceito de generalização. O modelo estabelece um ator base genérico denominado "Usuário", do qual herdam (ou seja, são especializações) os três atores principais da plataforma: Administrador(a), Psicólogo(a) e Aluno(a).
+Para fins de organização lógica e visual, as funcionalidades do sistema foram agrupadas em três pacotes ou fronteiras (sub-sistemas) principais:
+
+\begin{itemize}
+    \item Tela Administrador(a): Agrupa os casos de uso de governança, contemplando o "UC01: Cadastrar Instituições e Gerenciar Instituições" e o "UC02: Gerenciar Usuários e Acessos".
+    \item Tela Psicólogo(a): Concentra as ferramentas de curadoria e monitoramento, incluindo os casos de uso "UC03: Monitorar Status por Turma", "UC05: Criar e Customizar Conteúdo das Trilhas", "UC06: Cadastrar Links e Fontes", "UC07: Emitir Relatórios", "UC08: Agendar Sessões de Orientação" e "UC09: Enviar Feedback ao Aluno". Como destaque neste pacote, o diagrama ilustra uma relação de extensão (<<extends>>), na qual o caso "UC04: Ver Alunos com Flag de Dúvida" estende o "UC03: Monitorar Status por Turma".
+    \item Tela Aluno(a): Representa a jornada do estudante, agrupando as interações "UC10: Personalizar Perfil", "UC11: Percorrer Trilhas Sequenciais", "UC12: Registrar Síntese da Trilha", "UC13: Ver Leque de Carreiras", "UC14: Consultar Histórico e Evolução" e "UC15: Ver Agendamentos e Feedbacks". Neste módulo, é possível observar uma dependência explícita modelada pela relação de inclusão (<<include>>) entre os casos de registro de síntese (UC12) e a navegação pelas trilhas (UC11).
+\end{itemize}
+
+Por fim, o diagrama estabelece uma premissa de segurança global para a plataforma. Todas as três "telas" (fronteiras) descritas acima possuem um relacionamento de inclusão (<<include>>) apontando diretamente para o caso de uso independente "UC16: Realizar Login". Essa modelagem indica que a etapa de autenticação é um pré-requisito obrigatório e comum a todos os módulos isolados do sistema.
+
+\begin{figure}[H]
+    \centering
+    \caption{Diagrama de Casos de Uso.}
+    \label{diagrama_casos_de_uso}
+    \includegraphics[width=0.85\textwidth]{img/diagrama-casos-de-uso.png}
+    \legend{Fonte: Autoria própria (2026).}
+\end{figure}
+
+\section{Histórias de Usuário}
+
+O projeto \textit{SyncCarreira} adota a metodologia ágil Scrum, utilizando Histórias de Usuário (HU) para orientar o desenvolvimento de todo o ecossistema da plataforma, desde a jornada básica do MVP até as funcionalidades de gestão avançada previstas para a conclusão do projeto. As histórias a seguir refletem as necessidades de todos os perfis de usuários identificados.
+
+\subsection{Descrição das Histórias de Usuário}
+
+\paragraph{Perfil: Psicólogo (Gestão, Intervenção e Acompanhamento)}
+
+\begin{itemize}
+    \item \textbf{HU01 -- Monitoramento de Turma:} Como psicólogo, quero um painel de monitoramento de \textit{status} por turma, para que eu visualize o progresso dos alunos sem acessar dados sigilosos. \\
+    \textit{Critérios de Aceitação:} O sistema deve exibir lista de alunos por turma; filtrar por trilhas concluídas.
+
+    \item \textbf{HU02 -- Triagem de Necessidades:} Como psicólogo, quero visualizar alunos com dificuldades ou indecisos, para priorizar sessões (RN-03, RN-04). \\
+    \textit{Critérios de Aceitação:} Sistema deve gerar alerta visual (\textit{flag}) para alunos com \textit{status} "em dúvida".
+
+    \item \textbf{HU03 -- Customização de Trilhas:} Como psicólogo, quero criar e organizar trilhas customizadas, adaptando o conteúdo à necessidade da turma (RN-06). \\
+    \textit{Critérios de Aceitação:} Permitir cadastro, edição e exclusão de perguntas e trilhas.
+
+    \item \textbf{HU04 -- Curadoria de Materiais:} Como psicólogo, quero realizar a curadoria de \textit{links} externos, oferecendo material de consulta confiável (RN-05). \\
+    \textit{Critérios de Aceitação:} Permitir associar \textit{links} de fontes externas à trilha de "Informação".
+
+    \item \textbf{HU05 -- Emissão de Relatórios:} Como psicólogo, quero gerar relatórios de turma e individuais, para embasar \textit{feedbacks} técnicos. \\
+    \textit{Critérios de Aceitação:} Exportar panorama macro da turma e histórico detalhado do aluno.
+
+    \item \textbf{HU06 -- Comunicação de Feedback:} Como psicólogo, quero enviar \textit{feedbacks} personalizados pela plataforma, centralizando a análise e orientações. \\
+    \textit{Critérios de Aceitação:} Disponibilizar campo de texto editável para \textit{feedback} enviado ao aluno.
+
+    \item \textbf{HU07 -- Gestão de Agendamentos:} Como psicólogo, quero gerenciar o agendamento de sessões (individuais ou grupo), visualizando-as por calendário. \\
+    \textit{Critérios de Aceitação:} Notificar aluno automaticamente sobre o agendamento criado.
+\end{itemize}
+
+\paragraph{Perfil: Aluno (Engajamento, Reflexão e Organização)}
+
+\begin{itemize}
+    \item \textbf{HU08 -- Jornada de Aprendizado:} Como aluno, quero percorrer trilhas sequenciais, absorvendo conteúdo de forma lógica e gradativa (RN-01). \\
+    \textit{Critérios de Aceitação:} Bloquear acesso à trilha seguinte enquanto a atual não for concluída.
+
+    \item \textbf{HU09 -- Registro de Síntese:} Como aluno, quero registrar sínteses textuais ao final de cada trilha, expressando minhas reflexões (RN-02). \\
+    \textit{Critérios de Aceitação:} Campo de texto obrigatório para finalização de cada trilha.
+
+    \item \textbf{HU10 -- Panorama e Resultados:} Como aluno, quero visualizar leque de carreiras e histórico de trilhas, compreendendo minha evolução (RN-07, RN-08). \\
+    \textit{Critérios de Aceitação:} Exibir áreas sugeridas sem emitir diagnóstico fechado.
+
+    \item \textbf{HU11 -- Organização de Agenda:} Como aluno, quero visualizar meus agendamentos e \textit{feedbacks} recebidos, acompanhando meu progresso. \\
+    \textit{Critérios de Aceitação:} Exibir área dedicada no painel do aluno com o histórico de sessões.
+
+    \item \textbf{HU12 -- Configuração de Perfil:} Como aluno, quero personalizar meu perfil e selecionar interesses, tornando a experiência mais alinhada às minhas afinidades. \\
+    \textit{Critérios de Aceitação:} Permitir que o aluno atualize seus interesses declarados.
+\end{itemize}
+
+\paragraph{Perfil: Administrador (Governança, Segurança e Escala)}
+
+\begin{itemize}
+    \item \textbf{HU13 -- Cadastro e Gestão de Instituições:} Como administrador, quero cadastrar e gerir múltiplas instituições (escolas/ONGs), para que eu possa escalar o uso da plataforma para diferentes parceiros de forma isolada (RF-01). \\
+    \textit{Critérios de Aceitação:} O sistema deve permitir o cadastro de nome, CNPJ e configurações de acesso da instituição; os dados devem ser logicamente segregados por ID de instituição.
+
+    \item \textbf{HU14 -- Gestão de Perfis e Isolamento de Acesso:} Como administrador, quero gerir contas de psicólogas e alunos, atribuindo permissões específicas, para garantir que usuários acessem apenas os dados de sua própria instituição (RF-02, RNF-08). \\
+    \textit{Critérios de Aceitação:} O sistema deve validar o perfil (Admin, Psicólogo, Aluno) em cada requisição; deve impedir o acesso cruzado de dados entre instituições.
+
+    \item \textbf{HU15 -- Auditoria e Conformidade LGPD:} Como administrador, quero ferramentas para exclusão de dados e gestão de termos de uso, para que a plataforma permaneça em conformidade com a LGPD (RNF-02). \\
+    \textit{Critérios de Aceitação:} Deve haver uma funcionalidade para a exclusão irreversível de dados de alunos a pedido da instituição ou responsável legal.
+\end{itemize}
+
+\section{Arquitetura}
+
+\subsection{Definições da Arquitetura}
+
+O software SyncCarreira adota o modelo de implantação \textit{Software as a Service} (SaaS), focado na distribuição do sistema em nuvem para instituições de ensino. Sob a ótica do desenvolvimento web, o projeto foi concebido a partir da separação das responsabilidades entre o cliente e o servidor, sendo a comunicação intermediada por uma API REST.
+
+Para a camada de visualização, o sistema utiliza a abordagem de \textit{Single Page Application} (SPA), a qual propicia uma experiência de uso responsiva, interativa e econômica no consumo de banda, visto que dispensa recarregamentos completos de página a cada interação do usuário. No que tange à lógica do servidor, a aplicação fundamenta-se no padrão de Arquitetura em Camadas (Layered Architecture). Esse padrão, amplamente consolidado no ecossistema Spring Boot, assegura que o código seja altamente coeso e de baixo acoplamento, já que cada camada detém uma finalidade delimitada e apenas se comunica de modo estrito com as camadas diretamente adjacentes.
+
+\subsubsection{Padrão em Camadas (\textit{Layered Architecture})}
+
+O backend segue o padrão de arquitetura em camadas amplamente adotado em aplicações Spring Boot. Cada camada tem uma responsabilidade bem definida e se comunica exclusivamente com a camada adjacente, promovendo separação de responsabilidades, facilidade de manutenção e testabilidade.
+
+\begin{table}[H]
+\ABNTEXfontereduzida
+\caption[Padrão em camadas e responsabilidades.]{Padrão em camadas e responsabilidades.}
+\label{tab-camadas-backend}
+\begin{tabular}{p{4.6cm}|p{4.6cm}|p{4.6cm}}
+\textbf{Camada} & \textbf{Pacote} & \textbf{Responsabilidade} \\
+\hline
+Controllers & controllers/ & Recebe requisições HTTP, valida entrada e devolve respostas. \\
+\hline
+Services & services/ & Contém toda a lógica de negócio da aplicação. \\
+\hline
+Repositories & repositories/ & Acesso ao banco de dados via Spring Data JPA. \\
+\hline
+Entities & entities/ & Mapeamento das tabelas do banco de dados. \\
+\hline
+DTOs & dto/ & Objetos de transferência de dados entre camadas e cliente. \\
+
+\end{tabular}
+\legend{Fonte: Autoria própria (2026).}
+\end{table}
+
+\subsubsection{Herança de Entidades com JPA (\textit{JOINED Strategy})}
+
+O domínio de usuários utiliza herança de tabelas com a estratégia JOINED do JPA. A entidade base User é persistida em tb\_usuario e contém os atributos comuns a todos os usuários (id, nome, email, senha e roles). As entidades filhas Student e Psychologist possuem tabelas próprias (tb\_aluno e tb\_psicologa) que armazenam apenas seus atributos específicos, com uma chave estrangeira referenciando tb\_usuario.
+
+A razão do uso de Joined é que essa estratégia evita colunas nulas em uma única tabela (estratégia SINGLE\_TABLE) e mantém a integridade referencial. Cada tipo de usuário tem sua tabela própria, o que facilita consultas específicas por perfil e garante que campos obrigatórios de cada subtipo sejam sempre preenchidos.
+
+\subsubsection{Separação de DTOs por Operação}
+
+O projeto adota a boa prática de criar DTOs distintos para cada operação, evitando expor mais dados do que o necessário em cada contexto. O padrão utilizado é:
+\begin{itemize}
+    \item DTO de leitura (ex: StudentDTO): retorna os dados ao cliente após uma consulta ou operação de escrita.
+    \item DTO de inserção (ex: StudentInsertDTO): recebe os dados necessários para criar um novo registro, incluindo senha.
+    \item DTO de atualização (ex: StudentUpdateDTO): limita os campos que podem ser alterados em um update, excluindo, por exemplo, a senha e o id.
+\end{itemize}
+
+Muitos dos DTOs de leitura são implementados como Java Records, oferecendo imutabilidade e concisão sintática. Os DTOs de inserção e atualização que precisam de validações com Bean Validation utilizam classes convencionais com anotações como @NotNull e @Email.
+
+\subsection{Diagrama da Arquitetura}
+
+O diagrama abaixo ilustra a arquitetura técnica do sistema, detalhando a infraestrutura em nuvem e a integração entre os componentes da aplicação:
+
+\begin{figure}[htb]
+    \centering
+    \caption{Representação da Arquitetura de Infraestrutura e Implantação (AWS Cloud).}
+    \label{fig_arquitetura}
+    \includegraphics[width=0.90\textwidth]{img/diag-1-arquitetura-infraestrutura-aws.png}
+    \legend{Fonte: Produzido pelos autores (2026).}
+\end{figure}
+
+
+A arquitetura foi estruturada para garantir escalabilidade e segurança, composta pelos seguintes elementos principais:
+
+\begin{itemize}
+    \item \textbf{Dispositivo do Usuário:} Interface \textit{front-end} desenvolvida em React, acessada via navegador \textit{web} e comunicando-se via HTTPS com os serviços em nuvem.
+
+    \item \textbf{AWS S3:} Responsável pela hospedagem dos arquivos estáticos (HTML/CSS/JS), garantindo alta disponibilidade e \textit{performance} no carregamento da interface.
+
+    \item \textbf{Instância AWS EC2:} Servidor Linux que hospeda o \textit{back-end} desenvolvido em Java/\textit{Spring Boot}, processando as regras de negócio e gerenciando as requisições REST.
+
+    \item \textbf{AWS RDS (MySQL):} Banco de dados gerenciado que garante a persistência das entidades do sistema, com conexão segura via JDBC realizada diretamente pelo \textit{back-end}.
+\end{itemize}
+
+Complementando a visão estrutural da arquitetura, o Diagrama de Componentes UML ilustra a organização modular do sistema  \textit{SyncCarreira}, evidenciando o desacoplamento e as diretrizes de comunicação entre os principais subsistemas da aplicação.
+ 
+\begin{figure}[H]
+    \centering
+    \caption{Diagrama de Componentes do SyncCarreira.}
+    \label{fig_diagrama_componentes}
+    \includegraphics[width=0.95\textwidth]{img/diag-componentes.png}
+    \legend{Fonte: Produzido pelos autores (2026).}
+\end{figure}
+
+\section{Tecnologias}
+
+O ecossistema tecnológico do \textit{SyncCarreira} foi selecionado para garantir robustez, segurança e escalabilidade, permitindo que a aplicação suporte desde a operação do MVP até a consolidação do projeto completo. Abaixo, detalham-se as tecnologias adotadas para cada componente da solução.
+
+\subsection{Front-end}
+
+O \textit{front-end} foi desenvolvido com abordagem \textit{mobile-first}, utilizando HTML, CSS e JavaScript para garantir uma interface intuitiva e acessível. A biblioteca React foi aplicada na estruturação de componentes reutilizáveis, otimizando a navegação, garantindo fluidez e assegurando uma experiência dinâmica e adaptável aos diversos dispositivos dos estudantes.
+
+\subsection{Back-end}
+
+O \textit{back-end} utiliza Java com o \textit{framework} \textit{Spring Boot}, estruturado sob o padrão de arquitetura em camadas (Controller, Service, Repository, Entity), o que garante a separação de responsabilidades, facilidade de manutenção e a robustez necessária para as regras de negócio complexas das trilhas vocacionais.
+
+\begin{table}[H]
+\centering
+\ABNTEXfontereduzida
+\caption[Tecnologias utilizadas no back-end.]{Tecnologias utilizadas no back-end.}
+\label{tab-tecnologias-backend}
+\begin{tabular}{p{4.5cm}|c|p{7.5cm}}
+\textbf{Tecnologia} & \textbf{Versão} & \textbf{Finalidade} \\
+\hline
+Java & 21+ & Linguagem principal do backend \\
+\hline
+Spring Boot & 4.x & Framework principal da aplicação \\
+\hline
+Spring Security + OAuth2 & --- & Autenticação e autorização via JWT \\
+\hline
+Spring Data JPA & --- & Persistência e mapeamento objeto-relacional \\
+\hline
+Hibernate & --- & Implementação JPA / ORM \\
+\hline
+H2 Database & --- & Banco em memória para ambiente de testes \\
+\hline
+Lombok & --- & Redução de boilerplate (getters, setters, construtores) \\
+\hline
+SpringDoc / Swagger UI & --- & Documentação interativa dos endpoints \\
+\hline
+Gradle & --- & Gerenciamento de dependências e build \\
+\hline
+\end{tabular}
+\legend{Fonte: Autoria própria (2026).}
+\end{table}
+
+\subsection{Infraestrutura}
+
+A estratégia de infraestrutura baseia-se em um modelo SaaS (\textit{Software as a Service}) hospedado na nuvem, garantindo alta disponibilidade para os usuários finais.
+
+\subsubsection{Amazon Web Services (AWS)}
+
+A aplicação é hospedada na AWS (\textit{Amazon Web Services}), aproveitando a infraestrutura global para garantir a disponibilidade exigida para o horário letivo. Além disso, a segurança baseada em tokens JWT (\textit{JSON Web Token}) é implementada para garantir a autorização e o isolamento lógico entre os diferentes perfis (Administrador, Psicóloga e Aluno) e entre diferentes instituições, cumprindo as diretrizes de segurança da informação.
+
+A escolha pela AWS justifica-se pela sua confiabilidade, pelo amplo ecossistema de serviços gerenciados e pela disponibilidade de créditos promocionais para projetos acadêmicos e de impacto social, o que viabiliza a operação do \textit{SyncCarreira} sem custos iniciais de infraestrutura \cite{aws2026}.
+
+A arquitetura de implantação foi estruturada com os seguintes serviços:
+
+EC2 (\textit{Elastic Compute Cloud}) — fornece a instância de servidor virtual Linux que hospeda o back-end da aplicação, desenvolvido em Java com \textit{Spring Boot}. A instância processa as requisições REST provenientes do front-end, executa as regras de negócio e gerencia a comunicação com o banco de dados. O dimensionamento da instância foi definido para atender à demanda do ambiente escolar, com capacidade de escalonamento vertical conforme o crescimento do número de instituições atendidas.
+
+S3 (\textit{Simple Storage Service}) — armazena e serve os arquivos estáticos que compõem o front-end React (HTML, CSS e JavaScript). Por se tratar de uma \textit{Single Page Application} (SPA), todos os recursos da interface são compilados em arquivos estáticos durante o processo de \textit{build} e distribuídos diretamente pelo S3, eliminando a necessidade de um servidor web dedicado para a camada de apresentação e reduzindo os custos operacionais.
+
+RDS (\textit{Relational Database Service}) com MySQL — provê o banco de dados relacional gerenciado que persiste todas as entidades do sistema: usuários, trilhas, perguntas, respostas e agendamentos. Por ser um serviço gerenciado, o RDS elimina a necessidade de administração manual do servidor de banco de dados, oferecendo backups automatizados, aplicação de patches de segurança e alta disponibilidade nativos. A conexão entre a instância EC2 e o RDS é realizada via JDBC, de forma privada dentro da rede da AWS.
+
+VPC (\textit{Virtual Private Cloud}) — define a rede virtual privada que isola logicamente todos os recursos da aplicação na nuvem. A VPC estabelece sub-redes públicas e privadas: o bucket S3 e o balanceador de carga ficam expostos à internet, enquanto a instância EC2 e a instância RDS operam em sub-redes privadas, inacessíveis diretamente de fora da rede. Essa segregação é fundamental para proteger o banco de dados e o servidor de aplicação de acessos externos não autorizados.
+
+\textit{Security Groups} — atuam como firewalls virtuais no nível de instância, controlando o tráfego de entrada e saída de cada recurso. As regras configuradas garantem que: a instância EC2 aceite requisições HTTPS apenas provenientes do \textit{front-end} hospedado no S3; a instância RDS aceite conexões na porta 3306 exclusivamente a partir da instância EC2; e nenhum recurso da camada de dados seja acessível diretamente pela internet. Essa política de mínimo privilégio é especialmente relevante dado que o sistema processa dados sensíveis de menores de idade, em conformidade com os requisitos da LGPD.
+
+\subsection{Banco de Dados}
+
+O sistema utiliza o banco de dados MySQL para o armazenamento das entidades e registros da plataforma, garantindo a integridade, a consistência dos dados e o suporte eficiente às transações relacionais necessárias para o funcionamento das trilhas de orientação e perfis de usuário.
+
+\section{Testes e Manutenibilidade}
+
+A estratégia de testes do \textit{SyncCarreira} foi concebida para assegurar a confiabilidade, a segurança dos dados e a conformidade com as regras de negócio estabelecidas, garantindo que o sistema evolua de forma estável durante todo o ciclo de desenvolvimento.
+
+\subsection{Plano de Testes}
+
+O plano de testes adota uma abordagem em camadas, onde a qualidade é validada desde o desenvolvimento unitário até a aceitação final. A estratégia foca na automação de processos, visando reduzir falhas em produção e garantir a integridade do isolamento de dados entre diferentes instituições. Os testes são executados automaticamente através do Maven em cada ciclo de \textit{build}, assegurando que novas implementações não comprometam funcionalidades existentes.
+
+A execução do plano de testes contempla:
+
+\begin{itemize}
+    \item \textbf{Testes Funcionais e Unitários:} Validação da lógica de negócio e componentes isolados via JUnit, garantindo que as regras de cada trilha operem conforme o esperado.
+
+    \item \textbf{Testes de Integração:} Validação da persistência de dados utilizando o banco H2, confirmando a comunicação correta entre as camadas Repository e o banco.
+
+    \item \textbf{Testes Não Funcionais:} Avaliação de \textit{performance} e carga, monitorando o tempo de resposta das consultas principais (meta de até 2s) e a disponibilidade do sistema em períodos de alta demanda escolar.
+
+    \item \textbf{Análise Estática e Convenções:} Aplicação de padrões de \textit{clean code} e documentação de API via Swagger, facilitando a manutenibilidade do código por terceiros.
+\end{itemize}
+
+\section{Segurança, Privacidade e Legislação}
+
+\subsection{Critérios de Segurança e Privacidade}
+
+Considerando que a orientação vocacional demanda sigilo terapêutico e lida com registros individuais evolutivos, o projeto incorpora parâmetros de segurança rigorosos.
+
+Autenticação e Autorização: O software implementa o protocolo de controle \textit{OAuth2} associado à emissão de tokens JWT (\textit{JSON Web Token}) por meio das ferramentas \textit{Spring Authorization Server} e \textit{Resource Server}.
+
+Isolamento Perfilado (RBAC): Os níveis de acesso baseiam-se nos papéis (roles) de Administrador, Psicóloga e Aluno. O escopo de proteção nos endpoints intercepta a requisição e assegura a validação individual de permissão, frustrando ataques de elevação de privilégio ou acessos cruzados.
+
+Isolamento Multi-Tenant: A arquitetura segmenta os registros por instituições cadastradas de modo a coibir vazamentos verticais de informações e de histórico escolar para terceiros não autorizados.
+
+Criptografia: Todas as senhas cadastradas nas contas dos usuários são codificadas antes do processo de inserção no banco de dados.
+
+Proteção do Histórico (Soft Deletion): Exclusões de itens, como perguntas ou instituições, utilizam lógicas de inativação referencial (exclusão lógica) no lugar da supressão direta. Tal recurso defende o histórico terapêutico pregresso dos alunos que já executaram atividades relacionadas a tais conteúdos.
+
+Rastreabilidade: Através do mapeamento da implantação sistêmica de logs de auditoria, o sistema registra silenciosamente dados sobre a autoria, a ação e o momento cronológico das modificações de curadoria e administração executadas pelos usuários em cargos de gerência.
+
+\subsection{Observância à Legislação}
+
+O tratamento de dados dentro do sistema atende às diretrizes normativas propostas pela Lei Geral de Proteção de Dados Pessoais (LGPD).
+
+Pela premissa da jornada vocacional, os questionários do aluno alimentam o banco de dados com percepções sobre características emocionais e de núcleo sociofamiliar, classificando essas informações como dados pessoais sensíveis nos ditames legais.
+
+Como amparo normativo prévio a tal atividade — que envolve em grande parte alunos menores de idade —, o sistema prescreve obrigatoriamente, em seu fluxo de primeiro acesso, a exibição e a anuência de um Termo de Consentimento Livre e Esclarecido (TCLE).
+
+O repouso desses registros na nuvem é guarnecido com rotinas de criptografia que asseguram que a visualização só aconteça a partir da chave da própria plataforma ou de contas autenticadas com permissão curatorial.
+
+Por fim, respeitando os direitos primordiais dos usuários expostos na LGPD, o modelo do sistema abrange fluxos voltados para atender à exclusão definitiva ou à anonimização reversível dos dados e perfis, garantindo transparência à instituição e ao titular em caso de desligamentos contratuais ou solicitação legal.
+
+\section{Modelo de Banco de Dados}
+
+Este tópico apresenta a estrutura de dados do \textit{SyncCarreira}, projetada para organizar as informações dos usuários, o fluxo das trilhas de orientação e os registros de interação, garantindo a integridade e o isolamento dos dados.
+
+\subsection{Modelo Entidade Relacionamento -- MER}
+
+O modelo foi desenvolvido para refletir as necessidades de negócio do sistema, estabelecendo as relações entre as entidades fundamentais: Instituição, Usuário, Trilha, Pergunta, Resposta e Agendamento. O desenho foca na hierarquia de acesso, onde cada instituição detém seus próprios usuários e turmas, e na sequência lógica necessária para o percurso do aluno pelas trilhas.
+
+\begin{figure}[H]
+    \centering
+    \caption{Modelo Entidade Relacionamento (MER) do SyncCarreira.}
+    \label{fig_mer}
+    \includegraphics[width=0.90\textwidth]{img/diag-2-modelo-entidade-relacionamento.png}
+    \legend{Fonte: Autoria própria (2026).}
+\end{figure}
+
+\subsection{Diagrama Entidade Relacionamento -- DER (Tabelas)}
+
+O diagrama abaixo representa a estrutura física do banco de dados, detalhando as tabelas e suas respectivas chaves primárias e estrangeiras:
+
+\begin{figure}[H]
+    \centering
+    \caption{Diagrama Entidade Relacionamento (DER) do SyncCarreira.}
+    \label{fig_der}
+    \includegraphics[width=0.90\textwidth]{img/diag-3-diagrama-entidade-relacionamento.png}
+    \legend{Fonte: Autoria própria (2026).}
+\end{figure}
+
+\subsection{Dicionário de Dados}
+
+O dicionário de dados tem como objetivo documentar de forma detalhada os elementos armazenados no banco de dados do sistema \textit{SyncCarreira}, descrevendo suas tabelas, atributos, tipos de dados, restrições e finalidades. Essa documentação auxilia na manutenção, evolução e compreensão da estrutura de dados utilizada pela aplicação. A modelagem segue os princípios da Terceira Forma Normal (3FN), garantindo integridade e reduzindo redundâncias.
+
+\begin{table}[htb]
+\ABNTEXfontereduzida
+\caption[Dicionário de Dados do SyncCarreira]{Dicionário de dados do SyncCarreira.}
+\label{tab-dicionario}
+\begin{tabular}{p{2.5cm}|p{4cm}|p{7.5cm}}
+\textbf{Tabela} & \textbf{Campo} & \textbf{Descrição} \\
+\hline
+Instituicao & id, nome, cnpj & Dados da escola ou ONG parceira. \\
+\hline
+Usuario & id, nome, perfil, senha & Cadastro de administradores, psicólogos e alunos. \\
+\hline
+Trilha & id, titulo, pilar, ordem & Configuração dos pilares da jornada (ex: Autoconhecimento). \\
+\hline
+Pergunta & id, texto, tipo & Questões associadas às trilhas de orientação. \\
+\hline
+Resposta & id, valor, síntese & Registros das interações e reflexões do aluno. \\
+\hline
+Agendamento & id, data, status & Registros de sessões e orientações da psicóloga. \\
+\end{tabular}
+\legend{Fonte: Autoria própria (2026).}
+\end{table}
+
+% --- TABELA: INSTITUIÇÃO ---
+\begin{table}[H]
+    \centering
+    \ABNTEXfontereduzida
+    \caption[Dicionário de Dados - Tabela Instituição]{Dicionário de dados: Tabela Instituição.}
+    \label{tab-tb-instituicao}
+    \begin{tabular}{p{3.5cm}|p{2cm}|c|p{3.5cm}|p{4cm}}
+    \textbf{Campo} & \textbf{Tipo} & \textbf{Tamanho} & \textbf{Restrição} & \textbf{Descrição} \\
+    \hline
+    ID\_Instituicao & INT & - & PK, AUTO\_INCREMENT & Identificador único da instituição \\
+    \hline
+    Nome\_Instituicao & VARCHAR & 150 & NOT NULL & Nome da instituição \\
+    \hline
+    CNPJ\_Instituicao & CHAR & 14 & UNIQUE, NOT NULL & CNPJ da instituição \\
+    \hline
+    Ativo & BOOLEAN & - & NOT NULL & Indica se a instituição está ativa \\
+    \end{tabular}
+    \legend{Fonte: Autoria própria (2026).}
+\end{table}
+
+% --- TABELA: USUÁRIO ---
+\begin{table}[H]
+    \centering
+    \ABNTEXfontereduzida
+    \caption[Dicionário de Dados - Tabela Usuário]{Dicionário de dados: Tabela Usuário.}
+    \label{tab-tb-usuario}
+    \begin{tabular}{p{3.5cm}|p{2cm}|c|p{3.5cm}|p{4cm}}
+    \textbf{Campo} & \textbf{Tipo} & \textbf{Tamanho} & \textbf{Restrição} & \textbf{Descrição} \\
+    \hline
+    ID\_Usuario & INT & - & PK, AUTO\_INCREMENT & Identificador único do usuário \\
+    \hline
+    Nome\_Usuario & VARCHAR & - & NOT NULL & Nome completo do Usuário \\
+    \hline
+    Email\_Usuario & VARCHAR & 150 & UNIQUE, NOT NULL & E-mail utilizado para autenticação no sistema \\
+    \hline
+    Senha\_Usuario & VARCHAR & 255 & NOT NULL & Senha criptografada do usuário \\
+    \hline
+    FK\_ID\_PerfilAcesso & INT & - & FK, NOT NULL & Referência ao perfil de acesso do usuário \\
+    \end{tabular}
+    \legend{Fonte: Autoria própria (2026).}
+\end{table}
+
+    Observação: Na modelagem, Aluno é uma especialização de Usuário, utilizando o mesmo identificador.
+
+% --- TABELA: AGENDAMENTO ---
+\begin{table}[H]
+    \centering
+    \ABNTEXfontereduzida
+    \caption[Dicionário de Dados - Tabela Agendamento]{Dicionário de dados: Tabela Agendamento.}
+    \label{tab-tb-agendamento}
+    \begin{tabular}{p{3.5cm}|p{2cm}|c|p{3.5cm}|p{4cm}}
+    \textbf{Campo} & \textbf{Tipo} & \textbf{Tamanho} & \textbf{Restrição} & \textbf{Descrição} \\
+    \hline
+    ID\_Agendamento & INT & - & PK, AUTO\_INCREMENT & Identificador único do agendamento \\
+    \hline
+    DTH\_Agendamento & DATETIME & - & NOT NULL & Data e hora do atendimento \\
+    \hline
+    Tipo\_Agendamento & VARCHAR & 50 & NOT NULL & Tipo do atendimento agendado \\
+    \hline
+    Status\_Agendamento & VARCHAR & 30 & NOT NULL & Situação atual do agendamento \\
+    \hline
+    FK\_ID\_Psicologa & INT & - & FK, NOT NULL & Psicóloga responsável \\
+    \hline
+    FK\_ID\_Aluno & INT & - & FK, NOT NULL & Aluno atendido \\
+    \end{tabular}
+    \legend{Fonte: Autoria própria (2026).}
+\end{table}
+
+% --- TABELA: PERGUNTA ---
+\begin{table}[H]
+    \centering
+    \ABNTEXfontereduzida
+    \caption[Dicionário de Dados - Tabela Pergunta]{Dicionário de dados: Tabela Pergunta.}
+    \label{tab-tb-pergunta}
+    \begin{tabular}{p{3.5cm}|p{2cm}|c|p{3.5cm}|p{4cm}}
+    \textbf{Campo} & \textbf{Tipo} & \textbf{Tamanho} & \textbf{Restrição} & \textbf{Descrição} \\
+    \hline
+    ID\_Pergunta & INT & - & PK, AUTO\_INCREMENT & Identificador único da pergunta \\
+    \hline
+    Enunciado\_Pergunta & TEXT & - & NOT NULL & Texto da pergunta apresentada ao aluno \\
+    \hline
+    Opcoes\_Pergunta & TEXT & - & NOT NULL & Conjunto de alternativas disponíveis \\
+    \hline
+    FK\_ID\_Usuario & INT & - & FK & ID da psicóloga \\
+    \hline
+    FK\_ID\_Trilha & INT & - & FK, NOT NULL & ID externo da trilha \\
+    \end{tabular}
+    \legend{Fonte: Autoria própria (2026).}
+\end{table}
+
+Observação: A síntese da trilha será tratada como uma questão discursiva adicional, posicionada ao término do questionário. Seu objetivo é possibilitar que o aluno expresse, de forma livre, suas reflexões, percepções e interpretações acerca das experiências e conteúdos trabalhados durante a trilha. A inclusão dessa etapa amplia a capacidade analítica do sistema ao incorporar dados qualitativos, contribuindo para uma avaliação mais abrangente, personalizada e aderente às particularidades de cada estudante.
+
+% --- TABELA: TRILHA ---
+\begin{table}[H]
+    \centering
+    \ABNTEXfontereduzida
+    \caption[Dicionário de Dados - Tabela Trilha]{Dicionário de dados: Tabela Trilha.}
+    \label{tab-tb-trilha}
+    \begin{tabular}{p{3.5cm}|p{2cm}|c|p{3.5cm}|p{4cm}}
+    \textbf{Campo} & \textbf{Tipo} & \textbf{Tamanho} & \textbf{Restrição} & \textbf{Descrição} \\
+    \hline
+    ID\_Trilha & INT & - & PK, AUTO\_INCREMENT & Identificador único da trilha \\
+    \hline
+    Nome\_Trilha & VARCHAR & 100 & NOT NULL & Nome da trilha \\
+    \hline
+    Ordem\_Sequencial\_Trilha & INT & - & NOT NULL & Ordem de exibição da trilha \\
+    \hline
+    Pilar & VARCHAR & 100 & NOT NULL & Pilar de desenvolvimento relacionado \\
+    \hline
+    FK\_ID\_Perguntas & INT & - & FK, NOT NULL & Pergunta associada à trilha \\
+    \end{tabular}
+    \legend{Fonte: Autoria própria (2026).}
+\end{table}
+
+% --- TABELA: RESPOSTA ---
+\begin{table}[H]
+    \centering
+    \ABNTEXfontereduzida
+    \caption[Dicionário de Dados - Tabela Resposta]{Dicionário de dados: Tabela Resposta.}
+    \label{tab-tb-resposta}
+    \begin{tabular}{p{3.5cm}|p{2cm}|c|p{3.5cm}|p{4cm}}
+    \textbf{Campo} & \textbf{Tipo} & \textbf{Tamanho} & \textbf{Restrição} & \textbf{Descrição} \\
+    \hline
+    ID\_Resposta & INT & - & PK, AUTO\_INCREMENT & Identificador único da resposta \\
+    \hline
+    Conteudo\_Resposta & TEXT & - & NOT NULL & Resposta fornecida pelo aluno \\
+    \hline
+    Data\_Resposta & DATETIME & - & NOT NULL & Data e hora da resposta \\
+    \hline
+    FK\_ID\_Aluno & INT & - & FK, NOT NULL & Aluno que respondeu \\
+    \end{tabular}
+    \legend{Fonte: Autoria própria (2026).}
+\end{table}
+
+% --- TABELA: INTERESSE ---
+\begin{table}[H]
+    \centering
+    \ABNTEXfontereduzida
+    \caption[Dicionário de Dados - Tabela Interesse]{Dicionário de dados: Tabela Interesse.}
+    \label{tab-tb-interesse}
+    \begin{tabular}{p{3.5cm}|p{2cm}|c|p{3.5cm}|p{4cm}}
+    \textbf{Campo} & \textbf{Tipo} & \textbf{Tamanho} & \textbf{Restrição} & \textbf{Descrição} \\
+    \hline
+    ID\_Interesse & INT & - & PK, AUTO\_INCREMENT & Identificador único do interesse \\
+    \hline
+    Descricao\_Interesse & VARCHAR & 150 & NOT NULL & Descrição do interesse profissional \\
+    \end{tabular}
+    \legend{Fonte: Autoria própria (2026).}
+\end{table}
+
+% --- TABELA: INTERESSE ALUNO ---
+\begin{table}[H]
+    \centering
+    \ABNTEXfontereduzida
+    \caption[Dicionário de Dados - Tabela Interesse Aluno]{Dicionário de dados: Tabela Interesse Aluno.}
+    \label{tab-tb-interesse-aluno}
+    \begin{tabular}{p{3.5cm}|p{2cm}|c|p{3.5cm}|p{4cm}}
+    \textbf{Campo} & \textbf{Tipo} & \textbf{Tamanho} & \textbf{Restrição} & \textbf{Descrição} \\
+    \hline
+    ID\_InteresseAluno & INT & - & PK, AUTO\_INCREMENT & Identificador único do relacionamento \\
+    \hline
+    FK\_ID\_Aluno & INT & - & FK, NOT NULL & Aluno associado \\
+    \hline
+    FK\_ID\_Interesse & INT & - & FK, NOT NULL & Interesse associado \\
+    \end{tabular}
+    \legend{Fonte: Autoria própria (2026).}
+\end{table}
+
+% --- TABELA: ROLE ---
+\begin{table}[H]
+    \centering
+    \ABNTEXfontereduzida
+    \caption[Dicionário de Dados - Tabela Role]{Dicionário de dados: Tabela Role.}
+    \label{tab-tb-role}
+    \begin{tabular}{p{3.5cm}|p{2cm}|c|p{3.5cm}|p{4cm}}
+    \textbf{Campo} & \textbf{Tipo} & \textbf{Tamanho} & \textbf{Restrição} & \textbf{Descrição} \\
+    \hline
+    ID\_Role & INT & - & PK, AUTO\_INCREMENT & Identificador único da role \\
+    \hline
+    Autoridade\_Role & VARCHAR & 100 & NOT NULL & Nome da autoridade/permissão \\
+    \end{tabular}
+    \legend{Fonte: Autoria própria (2026).}
+\end{table}
+
+% --- TABELA: USUARIO ROLE ---
+\begin{table}[H]
+    \centering
+    \ABNTEXfontereduzida
+    \caption[Dicionário de Dados - Tabela Usuario Role]{Dicionário de dados: Tabela Usuario Role.}
+    \label{tab-tb-usuario-role}
+    \begin{tabular}{p{3.5cm}|p{2cm}|c|p{3.5cm}|p{4cm}}
+    \textbf{Campo} & \textbf{Tipo} & \textbf{Tamanho} & \textbf{Restrição} & \textbf{Descrição} \\
+    \hline
+    FK\_ID\_Usuario & INT & - & PK, FK, NOT NULL & Usuário associado \\
+    \hline
+    FK\_ID\_Role & INT & - & PK, FK, NOT NULL & Role associada \\
+    \end{tabular}
+    \legend{Fonte: Autoria própria (2026).}
+\end{table}
+
+% --- TABELA: PSICÓLOGA ---
+\begin{table}[H]
+    \centering
+    \ABNTEXfontereduzida
+    \caption[Dicionário de Dados - Tabela Psicóloga]{Dicionário de dados: Tabela Psicóloga.}
+    \label{tab-tb-psicologa}
+    \begin{tabular}{p{3.5cm}|p{2cm}|c|p{3.5cm}|p{4cm}}
+    \textbf{Campo} & \textbf{Tipo} & \textbf{Tamanho} & \textbf{Restrição} & \textbf{Descrição} \\
+    \hline
+    ID\_Usuario & INT & - & PK, FK & Referência ao usuário \\
+    \hline
+    CRP\_Psicologa & VARCHAR & 20 & UNIQUE, NOT NULL & Registo profissional da psicóloga \\
+    \hline
+    Dias\_Ver\_Cronograma & BOOLEAN & - & NOT NULL & Define se pode visualizar cronogramas \\
+    \end{tabular}
+    \legend{Fonte: Autoria própria (2026).}
+\end{table}
+
+Observação: Na modelagem, Psicóloga é uma especialização de Usuário, utilizando o mesmo identificador.
+
+% --- TABELA: OPÇÃO PERGUNTA ---
+\begin{table}[H]
+    \centering
+    \ABNTEXfontereduzida
+    \caption[Dicionário de Dados - Tabela Opção Pergunta]{Dicionário de dados: Tabela Opção Pergunta.}
+    \label{tab-tb-opcao-pergunta}
+    \begin{tabular}{p{3.5cm}|p{2cm}|c|p{3.5cm}|p{4cm}}
+    \textbf{Campo} & \textbf{Tipo} & \textbf{Tamanho} & \textbf{Restrição} & \textbf{Descrição} \\
+    \hline
+    ID\_Opcao\_Pergunta & INT & - & PK, AUTO\_INCREMENT & Identificador único da opção \\
+    \hline
+    Peso\_Alta & INT & - & NOT NULL & Pontuação atribuída ao pilar Alta \\
+    \hline
+    Peso\_Biologica & INT & - & NOT NULL & Pontuação atribuída ao pilar Biológica \\
+    \hline
+    Peso\_Interesse & INT & - & NOT NULL & Pontuação atribuída ao pilar Interesse \\
+    \hline
+    Peso\_Social & INT & - & NOT NULL & Pontuação atribuída ao pilar Social \\
+    \hline
+    FK\_ID\_Pergunta & INT & - & FK, NOT NULL & Pergunta à qual a opção pertence \\
+    \end{tabular}
+    \legend{Fonte: Autoria própria (2026).}
+\end{table}
+\section{Duração / Cronograma}
+
+O projeto \textit{SyncCarreira} possui uma estimativa total de execução de 10 meses, divididos em duas fases principais. A primeira fase foca no planejamento e na entrega de um Produto Mínimo Viável (MVP), enquanto a segunda fase foca na escala, integração de recursos avançados e testes de carga.
+
+\subsection{Análise da Duração do Projeto}
+
+Abaixo, apresentamos o cronograma detalhado por semanas de desenvolvimento:
+
+\begin{table}[htb]
+\ABNTEXfontereduzida
+\caption[Cronograma de Desenvolvimento do SyncCarreira]{Cronograma de desenvolvimento do SyncCarreira.}
+\label{tab-cronograma}
+\begin{tabular}{p{2.5cm}|p{4.5cm}|p{2cm}|p{5cm}}
+\textbf{Fase} & \textbf{Atividade} & \textbf{Duração} & \textbf{Entregável principal} \\
+\hline
+I. Concepção & Levantamento de Requisitos e Análise de Mercado & 3 semanas & Documento de Visão e RF/RNF \\
+\hline
+I. Concepção & Modelagem de Dados e Arquitetura UML & 2 semanas & DER, Diagramas de Classes e Componentes \\
+\hline
+II. MVP & Configuração do Ambiente (Java/Spring/DB) & 1 semana & Repositório e Pipeline CI/CD \\
+\hline
+II. MVP & Desenvolvimento do Módulo de Autenticação (OAuth2/JWT) & 2 semanas & Sistema de Login funcional \\
+\hline
+II. MVP & Motor de Testes e Persistência de Respostas & 4 semanas & Fluxo principal do teste vocacional \\
+\hline
+II. MVP & Painel Básico (\textit{Frontend} SPA) & 3 semanas & Interface de acompanhamento inicial \\
+\hline
+II. MVP & Testes Unitários e Integração (Core) & 2 semanas & Relatório de cobertura de testes \\
+\hline
+III. Refino & Curadoria e Trilhas de Informação & 4 semanas & Banco de dados de artigos e trilhas \\
+\hline
+III. Refino & Módulo de Feedbacks e Agendamentos & 3 semanas & Funcionalidade de interação Psicóloga-Aluno \\
+\hline
+IV. Escala & Dashboard de Análise e Relatórios (PDF/BI) & 5 semanas & Gerador de relatórios e Dashboards \\
+\hline
+IV. Escala & Testes de Performance, Carga e Segurança & 3 semanas & Relatório de estabilidade e segurança \\
+\hline
+V. Encerramento & Deploy Final e Homologação & 2 semanas & Sistema em ambiente de produção \\
+\end{tabular}
+\legend{Fonte: Autoria própria (2026).}
+\end{table}

@@ -1,0 +1,268 @@
+/* ═══════════════════════════════════════════════════════════════
+   src/pages/Home/HomePage.css
+   ═══════════════════════════════════════════════════════════════ */
+
+.hp-root {
+  min-height: 100vh;
+  background: var(--sc-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ────────────────────────────────────────────────── */
+.hp-header {
+  height: 60px;
+  background: var(--sc-white);
+  border-bottom: 1px solid var(--sc-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+}
+
+.hp-brand { display: flex; align-items: center; gap: 10px; }
+
+.hp-brand__mark {
+  width: 30px; height: 30px;
+  background: var(--sc-roxo);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; color: #fff;
+}
+
+.hp-brand__name { font-size: 15px; font-weight: 600; color: var(--sc-text); }
+
+.hp-logout {
+  background: none;
+  border: 1.5px solid var(--sc-border);
+  border-radius: var(--sc-radius-sm);
+  padding: 6px 14px;
+  font-size: 13px;
+  color: var(--sc-muted);
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.hp-logout:hover { border-color: var(--sc-roxo); color: var(--sc-roxo); }
+
+/* ── Main ──────────────────────────────────────────────────── */
+.hp-main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 32px 24px 60px;
+}
+
+.hp-content {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Card de boas-vindas ───────────────────────────────────── */
+.hp-card {
+  background: var(--sc-white);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-lg);
+  padding: 36px 32px;
+  text-align: center;
+  box-shadow: var(--sc-shadow);
+}
+
+.hp-avatar {
+  width: 64px; height: 64px;
+  background: var(--sc-roxo);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; font-weight: 700; color: #fff;
+  margin: 0 auto 20px;
+}
+
+.hp-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--sc-text);
+  margin-bottom: 6px;
+}
+
+.hp-title span { color: var(--sc-roxo); }
+
+.hp-sub { font-size: 14px; color: var(--sc-muted); margin-bottom: 0; }
+
+.hp-btn-cadastro {
+  margin-top: 20px;
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--sc-roxo);
+  color: #fff;
+  border: none;
+  border-radius: var(--sc-radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: var(--sc-shadow-btn);
+}
+
+.hp-btn-cadastro:hover {
+  background: var(--sc-roxo-hover);
+  box-shadow: 0 6px 18px rgba(108, 71, 255, 0.4);
+}
+
+/* ── Seção de trilhas ──────────────────────────────────────── */
+.hp-trails {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hp-trails__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sc-text);
+  margin-bottom: 2px;
+}
+
+.hp-trails__loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--sc-muted);
+  padding: 16px 0;
+}
+
+.hp-trails__spinner {
+  width: 18px; height: 18px;
+  border: 2.5px solid var(--sc-border);
+  border-top-color: var(--sc-roxo);
+  border-radius: 50%;
+  animation: hpSpin 0.8s linear infinite;
+}
+
+@keyframes hpSpin { to { transform: rotate(360deg); } }
+
+.hp-trails__error,
+.hp-trails__empty {
+  font-size: 13.5px;
+  color: var(--sc-muted);
+  padding: 16px 0;
+}
+
+/* ── Card de trilha ────────────────────────────────────────── */
+.hp-trail-card {
+  background: var(--sc-white);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: var(--sc-shadow);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.hp-trail-card:hover {
+  border-color: #d4c9ff;
+  box-shadow: 0 4px 20px rgba(108, 71, 255, 0.1);
+}
+
+.hp-trail-card--done {
+  border-color: #c8e6c9;
+  background: linear-gradient(135deg, #fff 0%, #f1f8e9 100%);
+}
+
+.hp-trail-card__icon {
+  width: 44px; height: 44px;
+  background: var(--sc-roxo-soft);
+  border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--sc-roxo);
+  flex-shrink: 0;
+}
+
+.hp-trail-card--done .hp-trail-card__icon {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.hp-trail-card__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.hp-trail-card__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sc-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hp-trail-card__loading {
+  font-size: 12px;
+  color: var(--sc-muted);
+}
+
+.hp-trail-card__bar {
+  height: 5px;
+  background: var(--sc-border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.hp-trail-card__bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--sc-roxo), #9b7eff);
+  border-radius: 99px;
+  transition: width 0.5s ease;
+}
+
+.hp-trail-card--done .hp-trail-card__bar-fill {
+  background: linear-gradient(90deg, #4caf50, #81c784);
+}
+
+.hp-trail-card__pct {
+  font-size: 11.5px;
+  color: var(--sc-muted);
+}
+
+/* ── Botão da trilha ───────────────────────────────────────── */
+.hp-trail-card__btn {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  background: var(--sc-roxo);
+  color: #fff;
+  border: none;
+  border-radius: var(--sc-radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+}
+
+.hp-trail-card__btn:hover {
+  background: var(--sc-roxo-hover);
+}
+
+.hp-trail-card__btn--done {
+  background: none;
+  color: #2e7d32;
+  border: 1.5px solid #a5d6a7;
+}
+
+.hp-trail-card__btn--done:hover {
+  background: #e8f5e9;
+}
+
+/* ── Responsivo ────────────────────────────────────────────── */
+@media (max-width: 520px) {
+  .hp-card { padding: 28px 20px; }
+  .hp-trail-card { padding: 14px 16px; }
+}

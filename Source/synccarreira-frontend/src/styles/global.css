@@ -1,0 +1,45 @@
+/* ═══════════════════════════════════════════════════════════════
+   src/styles/global.css
+
+   Reset base e estilos globais da aplicação.
+   Importa as variáveis de design e define apenas regras
+   que se aplicam a TODOS os elementos do projeto.
+   ═══════════════════════════════════════════════════════════════ */
+
+@import './variables.css';
+
+/* ── Reset ──────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Base ───────────────────────────────────────────────────── */
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--sc-bg);
+  color: var(--sc-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Elementos inline ───────────────────────────────────────── */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Garante que inputs e botões herdem a fonte do body */
+input, button, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+button {
+  cursor: pointer;
+}

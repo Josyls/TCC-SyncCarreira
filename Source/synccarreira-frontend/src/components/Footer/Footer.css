@@ -1,0 +1,48 @@
+/* ═══════════════════════════════════════════════════════════════
+   src/components/Footer/Footer.css
+
+   Estilos do rodapé reutilizável.
+   O componente deve ser posicionado pelas páginas que o usam —
+   não há position:fixed aqui, mantendo flexibilidade de layout.
+   ═══════════════════════════════════════════════════════════════ */
+
+.sc-footer {
+  border-top: 1px solid var(--sc-border);
+  background: var(--sc-white);
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--sc-muted);
+}
+
+.sc-footer__copy {
+  /* texto de copyright à esquerda */
+}
+
+.sc-footer__links {
+  display: flex;
+  gap: 20px;
+}
+
+.sc-footer__links button {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: var(--sc-muted);
+  transition: color 0.15s;
+}
+
+.sc-footer__links button:hover {
+  color: var(--sc-roxo);
+}
+
+/* ── Responsivo ─────────────────────────────────────────────── */
+@media (max-width: 520px) {
+  .sc-footer {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+}

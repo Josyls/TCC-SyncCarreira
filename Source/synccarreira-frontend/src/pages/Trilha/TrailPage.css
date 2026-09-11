@@ -1,0 +1,502 @@
+/* ═══════════════════════════════════════════════════════════════
+   src/pages/Trail/TrailPage.css
+   Estilos da tela de trilha — progresso + perguntas + respostas.
+   Usa variáveis de src/styles/variables.css (via global.css).
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Estrutura ─────────────────────────────────────────────── */
+.tp-root {
+  min-height: 100vh;
+  background: var(--sc-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ────────────────────────────────────────────────── */
+.tp-header {
+  height: 60px;
+  background: var(--sc-white);
+  border-bottom: 1px solid var(--sc-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tp-header__left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tp-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1.5px solid var(--sc-border);
+  border-radius: var(--sc-radius-sm);
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--sc-muted);
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.tp-back:hover {
+  border-color: var(--sc-roxo);
+  color: var(--sc-roxo);
+}
+
+.tp-header__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sc-text);
+}
+
+.tp-header__progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tp-header__pct {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sc-roxo);
+  min-width: 36px;
+  text-align: right;
+}
+
+.tp-progbar {
+  width: 120px;
+  height: 6px;
+  background: var(--sc-border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.tp-progbar__fill {
+  height: 100%;
+  background: var(--sc-roxo);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+/* ── Main ──────────────────────────────────────────────────── */
+.tp-main {
+  flex: 1;
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Hero da trilha ────────────────────────────────────────── */
+.tp-hero {
+  background: var(--sc-white);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-lg);
+  padding: 28px 32px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: var(--sc-shadow);
+  margin-bottom: 8px;
+}
+
+.tp-hero__icon {
+  width: 56px;
+  height: 56px;
+  background: var(--sc-roxo-soft);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sc-roxo);
+  flex-shrink: 0;
+}
+
+.tp-hero__info h1 {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--sc-text);
+  margin-bottom: 4px;
+}
+
+.tp-hero__info p {
+  font-size: 13.5px;
+  color: var(--sc-muted);
+  line-height: 1.55;
+}
+
+.tp-hero__stats {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.tp-hero__stat {
+  font-size: 12px;
+  color: var(--sc-muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tp-hero__stat strong {
+  color: var(--sc-text);
+  font-weight: 600;
+}
+
+/* ── Barra de progresso grande ─────────────────────────────── */
+.tp-progress-card {
+  background: var(--sc-white);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-lg);
+  padding: 20px 28px;
+  box-shadow: var(--sc-shadow);
+  margin-bottom: 8px;
+}
+
+.tp-progress-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.tp-progress-card__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sc-text);
+}
+
+.tp-progress-card__count {
+  font-size: 13px;
+  color: var(--sc-muted);
+}
+
+.tp-progress-card__bar {
+  height: 10px;
+  background: var(--sc-border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.tp-progress-card__fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--sc-roxo), #9b7eff);
+  border-radius: 99px;
+  transition: width 0.5s ease;
+}
+
+/* ── Cartão de pergunta ────────────────────────────────────── */
+.tp-question {
+  background: var(--sc-white);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-lg);
+  padding: 24px 28px;
+  box-shadow: var(--sc-shadow);
+  transition: border-color 0.2s;
+}
+
+.tp-question--answered {
+  border-color: #d4c9ff;
+  background: linear-gradient(135deg, #fdfcff 0%, #f8f6ff 100%);
+}
+
+.tp-question__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.tp-question__num {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--sc-roxo);
+  text-transform: uppercase;
+}
+
+.tp-question__badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 99px;
+  background: var(--sc-roxo-soft);
+  color: var(--sc-roxo);
+  letter-spacing: 0.04em;
+}
+
+.tp-question__badge--done {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.tp-question__content {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--sc-text);
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+
+/* ── Opções CHECKBOX ───────────────────────────────────────── */
+.tp-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tp-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1.5px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  background: #fafafa;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  text-align: left;
+  width: 100%;
+}
+
+.tp-option:hover {
+  border-color: var(--sc-roxo);
+  background: var(--sc-white);
+}
+
+.tp-option--selected {
+  border-color: var(--sc-roxo);
+  background: var(--sc-roxo-soft);
+}
+
+.tp-option__dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--sc-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.tp-option--selected .tp-option__dot {
+  border-color: var(--sc-roxo);
+  background: var(--sc-roxo);
+}
+
+.tp-option__dot-inner {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: white;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.tp-option--selected .tp-option__dot-inner {
+  opacity: 1;
+}
+
+.tp-option__text {
+  font-size: 13.5px;
+  color: var(--sc-text);
+  line-height: 1.4;
+}
+
+/* ── Opções LIKERT ─────────────────────────────────────────── */
+.tp-likert {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tp-likert__labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.tp-likert__label {
+  font-size: 11px;
+  color: var(--sc-muted);
+  font-weight: 500;
+}
+
+.tp-likert__scale {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.tp-likert__btn {
+  flex: 1;
+  height: 48px;
+  border: 1.5px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  background: #fafafa;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sc-muted);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.1s;
+}
+
+.tp-likert__btn:hover {
+  border-color: var(--sc-roxo);
+  color: var(--sc-roxo);
+  background: var(--sc-white);
+}
+
+.tp-likert__btn--selected {
+  border-color: var(--sc-roxo);
+  background: var(--sc-roxo);
+  color: #fff;
+}
+
+.tp-likert__btn:active { transform: scale(0.96); }
+
+/* ── Feedback de salvamento ────────────────────────────────── */
+.tp-question__save-feedback {
+  margin-top: 10px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 20px;
+}
+
+.tp-question__save-feedback--saving {
+  color: var(--sc-muted);
+}
+
+.tp-question__save-feedback--saved {
+  color: #2e7d32;
+}
+
+.tp-question__save-feedback--error {
+  color: var(--sc-error-txt);
+}
+
+.tp-save-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  border-top-color: var(--sc-muted);
+  border-radius: 50%;
+  animation: tpSpin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes tpSpin { to { transform: rotate(360deg); } }
+
+/* ── Estado de loading da página ───────────────────────────── */
+.tp-loading {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: var(--sc-muted);
+  font-size: 14px;
+}
+
+.tp-loading__spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--sc-border);
+  border-top-color: var(--sc-roxo);
+  border-radius: 50%;
+  animation: tpSpin 0.8s linear infinite;
+}
+
+/* ── Estado de erro ────────────────────────────────────────── */
+.tp-error-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.tp-error-state p {
+  font-size: 14px;
+  color: var(--sc-muted);
+}
+
+.tp-error-state button {
+  padding: 10px 24px;
+  background: var(--sc-roxo);
+  color: white;
+  border: none;
+  border-radius: var(--sc-radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ── Conclusão ─────────────────────────────────────────────── */
+.tp-done {
+  background: var(--sc-white);
+  border: 1px solid #d4c9ff;
+  border-radius: var(--sc-radius-lg);
+  padding: 32px;
+  text-align: center;
+  box-shadow: var(--sc-shadow);
+  margin-top: 8px;
+}
+
+.tp-done__icon {
+  width: 64px;
+  height: 64px;
+  background: var(--sc-roxo-soft);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  color: var(--sc-roxo);
+}
+
+.tp-done h2 {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--sc-text);
+  margin-bottom: 6px;
+}
+
+.tp-done p {
+  font-size: 14px;
+  color: var(--sc-muted);
+  line-height: 1.55;
+}
+
+/* ── Responsivo ────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .tp-main { padding: 20px 16px 48px; }
+  .tp-hero { flex-direction: column; align-items: flex-start; }
+  .tp-hero__stats { margin-left: 0; align-items: flex-start; }
+  .tp-question { padding: 18px 16px; }
+  .tp-header__progress { display: none; }
+  .tp-likert__scale { gap: 4px; }
+  .tp-likert__btn { height: 44px; font-size: 14px; }
+}

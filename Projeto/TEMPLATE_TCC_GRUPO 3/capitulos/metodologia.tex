@@ -1,0 +1,124 @@
+% ----------------------------------------------------------
+% Gestão do Projeto
+% ----------------------------------------------------------
+\chapter{Gestão do Projeto}
+
+A gestão do projeto do \textit{SyncCarreira} será estruturada com o objetivo de garantir a organização, o planejamento e a execução adequada das atividades necessárias ao desenvolvimento da plataforma. Para tanto, será adotada uma abordagem sistemática que compreende as fases de planejamento, execução e acompanhamento, permitindo a distribuição eficiente de tarefas, o controle de prazos e a mitigação de riscos ao longo de todo o ciclo de vida do projeto.
+
+O planejamento do projeto constitui a primeira etapa e tem como finalidade estabelecer as bases sobre as quais todas as demais atividades serão conduzidas. Nesta fase, serão definidos o escopo detalhado do sistema, com base nos objetivos específicos previamente estabelecidos, e as entregas parciais e finais esperadas. Serão elaborados os artefatos de planejamento, incluindo o cronograma de atividades com a definição de marcos temporais, a alocação preliminar de recursos humanos e tecnológicos, e a identificação dos principais riscos associados ao desenvolvimento. A definição clara das funcionalidades previstas para cada perfil de usuário --- psicólogo e estudante --- será documentada por meio de especificações de requisitos funcionais e não funcionais, garantindo que todas as entregas estejam alinhadas à proposta de automação, customização e centralização de dados.
+
+A fase de execução compreende a implementação prática das atividades planejadas, sendo conduzida de forma iterativa e incremental. O desenvolvimento do \textit{software} será organizado em \textit{sprints}, ciclos curtos de trabalho com duração predefinida, nos quais serão priorizadas as funcionalidades de maior valor para o negócio. Durante a execução, a equipe responsável pelo projeto realizará atividades de codificação, testes unitários e integração contínua, assegurando que cada módulo desenvolvido atenda aos critérios de qualidade estabelecidos. Serão desenvolvidos, nesta etapa, os quatro principais componentes do sistema: o módulo de gestão de baterias de avaliação, que implementará as operações de gerenciamento de dados de testes vocacionais personalizáveis; o módulo de jornada do orientando, responsável pelo cadastro e gestão do perfil dos estudantes e seu histórico de testes; o módulo de planejamento terapêutico, que viabilizará o agendamento de sessões de orientação entre psicólogos e alunos; e o módulo de repositório de devolutivas, que permitirá a geração, armazenamento e compartilhamento de relatórios personalizados e \textit{feedbacks} entre os usuários.
+
+O acompanhamento do projeto será realizado de forma contínua e sistemática, com o propósito de monitorar o progresso das atividades, controlar prazos e garantir que os objetivos estabelecidos sejam alcançados dentro do escopo e dos recursos previstos. Para tanto, serão realizadas reuniões periódicas de alinhamento entre os membros da equipe, nas quais serão analisados os indicadores de desempenho, como o cumprimento do cronograma, a evolução das entregas e a ocorrência de eventuais desvios ou impedimentos. Ferramentas de gestão de projetos, como quadros Kanban ou \textit{softwares} de acompanhamento de tarefas, serão utilizadas para a visualização do fluxo de trabalho e a transparência na distribuição de responsabilidades. Adicionalmente, serão conduzidas revisões de código e testes de aceitação ao final de cada \textit{sprint}, assegurando que as entregas parciais estejam em conformidade com os requisitos especificados e prontas para integração ao sistema completo.
+
+No que tange à distribuição de tarefas e ao controle de prazos, a equipe do projeto será organizada de acordo com as competências técnicas necessárias para cada etapa do desenvolvimento. As responsabilidades serão atribuídas de forma clara e documentada, considerando áreas como desenvolvimento \textit{front-end}, desenvolvimento \textit{back-end}, modelagem de banco de dados, testes de \textit{software} e documentação técnica. O cronograma estabelecido na fase de planejamento servirá como referência para o monitoramento do avanço das atividades, sendo atualizado sempre que necessário para refletir ajustes decorrentes de imprevistos ou mudanças no escopo. A adoção de práticas ágeis, como a realização de reuniões diárias de alinhamento (\textit{daily meetings}) e a manutenção de um \textit{backlog} priorizado, contribuirá para a agilidade na tomada de decisões e para a rápida adaptação a eventuais mudanças de requisitos ao longo do desenvolvimento.
+
+Por fim, a gestão do projeto também contemplará a comunicação com as partes interessadas, incluindo o orientador acadêmico e os potenciais usuários finais da plataforma, psicólogos e estudantes. Serão realizadas apresentações periódicas do andamento do projeto, com demonstrações das funcionalidades já implementadas, permitindo a coleta de \textit{feedbacks} e a validação contínua das soluções desenvolvidas. Essa abordagem colaborativa visa assegurar que o produto final esteja alinhado às reais necessidades dos usuários e aos objetivos educacionais e institucionais que motivaram a concepção do \textit{SyncCarreira}. Dessa forma, a estrutura de gestão adotada contribuirá para a organização eficiente do trabalho, o cumprimento dos prazos estabelecidos e a entrega de uma solução tecnológica consistente, escalável e alinhada às demandas do mercado de orientação vocacional.
+
+\section{Organização da Equipe}
+
+O projeto \textit{SyncCarreira} é desenvolvido por uma equipe multidisciplinar, estruturada de forma a cobrir todas as etapas do ciclo de vida de um \textit{software} SaaS, desde a concepção da experiência do usuário até a implementação da infraestrutura de dados. A divisão de papéis foi estabelecida para otimizar o fluxo de trabalho e garantir a segurança no tratamento de informações sensíveis.
+
+\subsection{Membros e Atribuições}
+
+A equipe é composta por seis integrantes, com responsabilidades distribuídas conforme suas especialidades técnicas:
+
+\begin{table}[htb]
+\ABNTEXfontereduzida
+\caption[Distribuição de Atribuições por Membro]{Distribuição de atribuições por membro da equipe.}
+\label{tab-atribuicoes}
+\begin{tabular}{|l|c|c|c|c|c|c|}
+\hline
+\textbf{Membro} & \textbf{Ger. Proj.} & \textbf{DBA} & \textbf{UX} & \textbf{Back-end} & \textbf{Front-end} & \textbf{Doc.} \\
+\hline
+Joseane Lelis  & X &   &   &   &   & X \\
+\hline
+Camilly Freire &   & X & X &   &   & X \\
+\hline
+Olívia Helena  &   & X &   &   & X & X \\
+\hline
+Victor Rodrigues de Barros &  &  &   & X &   & X \\
+\hline
+Pedro Yoshiaki &   &   &   & X &   & X \\
+\hline
+Matheus Soares &   &   &   &   & X & X \\
+\hline
+\end{tabular}
+\legend{Fonte: Autoria própria (2026).}
+\end{table}
+
+\paragraph{Metodologia de Colaboração}
+
+Para favorecer a colaboração e evitar gargalos no desenvolvimento, a equipe adota as seguintes práticas:
+
+\begin{itemize}
+    \item \textbf{Divisão por Competências:} Ao designar responsáveis específicos para áreas como \textit{Back-end} e Banco de Dados, o projeto evita o retrabalho, pois cada integrante domina as ferramentas e padrões necessários para sua função, como Programação Orientada a Objetos (POO).
+
+    \item \textbf{Suporte Mútuo e Redundância:} A presença de mais de um integrante em áreas críticas (como o par de desenvolvedores \textit{Back-end} e a dupla de DBAs) evita a sobrecarga individual e permite a troca de conhecimento técnico, garantindo a continuidade do projeto em caso de imprevistos.
+
+    \item \textbf{Integração Contínua:} A comunicação entre os DBAs e os desenvolvedores \textit{Back-end} é constante para garantir que a API reflita fielmente o modelo de dados planejado, fator essencial para a escalabilidade do modelo SaaS proposto.
+\end{itemize}
+
+\section{Metodologias de Gestão e Desenvolvimento}
+
+A condução do projeto \textit{SyncCarreira} será fundamentada na adoção de metodologias ágeis de gestão e desenvolvimento, especificamente o \textit{framework} Scrum combinado com práticas do Kanban, visando garantir a organização sistemática das etapas, o planejamento eficiente e o acompanhamento contínuo do progresso. A escolha por abordagens ágeis justifica-se pela natureza do projeto, que envolve a construção de um \textit{software} com múltiplos módulos interconectados --- gestão de testes, perfil de alunos, agendamentos e relatórios ---, demandando flexibilidade para incorporar ajustes ao longo do processo sem comprometer o cronograma estabelecido.
+
+O Scrum será empregado como estrutura principal para a organização do trabalho, dividindo o desenvolvimento em ciclos iterativos denominados \textit{sprints}, cada um com duração de duas semanas. Essa periodicidade permite que a equipe entregue incrementos funcionais do sistema em intervalos regulares, facilitando a validação contínua das implementações junto ao orientador e aos potenciais usuários. No início de cada \textit{sprint}, será realizada uma reunião de planejamento (\textit{sprint planning}), na qual serão selecionadas as funcionalidades prioritárias a serem desenvolvidas com base no \textit{backlog} do produto --- uma lista ordenada de requisitos que reflete os objetivos específicos do projeto. Durante essa cerimônia, as tarefas serão estimadas em termos de esforço e complexidade, utilizando técnicas como \textit{planning poker}, e serão atribuídas aos membros da equipe conforme suas competências técnicas.
+
+Para complementar o Scrum e dar maior visibilidade ao fluxo de trabalho, será adotado um quadro Kanban, que poderá ser implementado por meio de ferramentas como Trello, Jira ou Azure Boards. O quadro será estruturado com colunas representando os estágios do desenvolvimento --- "A Fazer", "Em Andamento", "Em Revisão", "Em Teste" e "Concluído" --- permitindo o acompanhamento em tempo real do \textit{status} de cada tarefa e a identificação imediata de possíveis gargalos ou bloqueios. Essa combinação metodológica assegura que o planejamento seja dinâmico e que as prioridades possam ser reavaliadas a cada ciclo, em consonância com os \textit{feedbacks} recebidos e as eventuais mudanças de escopo.
+
+A gestão do projeto será conduzida por meio de cerimônias ágeis regulares, que estabelecem a cadência e a previsibilidade das atividades. Diariamente, serão realizadas reuniões breves de alinhamento (\textit{daily meetings}), com duração máxima de quinze minutos, nas quais cada membro da equipe compartilhará o progresso realizado no dia anterior, as tarefas previstas para o dia corrente e os impedimentos que eventualmente estejam dificultando a execução. Ao final de cada \textit{sprint}, serão conduzidas duas cerimônias fundamentais: a revisão (\textit{sprint review}), destinada à apresentação dos incrementos desenvolvidos para o orientador e demais partes interessadas, coletando \textit{feedbacks} e validando as entregas; e a retrospectiva (\textit{sprint retrospective}), focada na análise contínua do processo, identificando pontos de melhoria e ajustando as práticas da equipe para os ciclos subsequentes.
+
+No que tange ao desenvolvimento técnico propriamente dito, será adotada uma abordagem orientada a testes (\textit{test-driven development}) sempre que viável, garantindo que cada funcionalidade seja acompanhada de testes automatizados que assegurem sua corretude e estabilidade. O código-fonte será versionado utilizando Git, com o repositório hospedado em plataforma como GitHub ou GitLab, adotando-se um fluxo de trabalho baseado em \textit{branches} para isolamento de funcionalidades (\textit{feature branches}) e revisão de código por pares (\textit{code review}) antes da integração à \textit{branch} principal. Essa prática contribui para a qualidade do \textit{software}, a disseminação do conhecimento técnico entre a equipe e a redução da incidência de defeitos.
+
+A integração contínua será implementada por meio de ferramentas automatizadas que executam os testes e verificam a conformidade do código com os padrões estabelecidos a cada novo \textit{commit}, fornecendo \textit{feedback} imediato sobre a saúde do projeto. Para a gestão da infraestrutura, será adotado o conceito de infraestrutura como código (\textit{infrastructure as code}), permitindo que os ambientes de desenvolvimento, teste e produção sejam provisionados de forma consistente e reproduzível, reduzindo riscos associados a diferenças de configuração entre os ambientes.
+
+Por fim, a documentação do projeto será tratada como parte integrante do processo de desenvolvimento, não como uma etapa final. Serão produzidos e mantidos artefatos como a documentação técnica da API, o manual de implantação e o guia do usuário, todos atualizados ao longo do ciclo de vida do projeto. Essa sistemática de gestão e desenvolvimento torna o processo mais claro, previsível e sistemático, permitindo à equipe conduzir o projeto com foco na entrega de valor, no cumprimento dos prazos e na qualidade do produto final.
+
+\subsection{Scrum / FDD / PMBOK}
+
+A \autoref{tab-equipe} descreve a estrutura de papéis e responsabilidades adotada no \textit{framework} Scrum:
+
+\begin{table}[htb]
+\ABNTEXfontereduzida
+\caption[Organização da Equipe e Responsabilidades]{Organização da equipe e responsabilidades.}
+\label{tab-equipe}
+\begin{tabular}{p{2.5cm}|p{3cm}|p{2.8cm}|p{5.5cm}}
+\textbf{Integrante} & \textbf{Função} & \textbf{Papel Scrum} & \textbf{Responsabilidades} \\
+\hline
+Joseane Lelis & Gerente de Projetos & Product Owner & Liderança estratégica; controle de cronograma; documentação do projeto; garantir que entregas atendam aos requisitos \\
+\hline
+Camilly Freire & DBA e UX & Time de Desenvolvimento & Modelagem e administração do banco de dados; garantir integridade e persistência; design de experiência do usuário \\
+\hline
+Victor Rodrigues de Barros & Desenvolvedor Back-end & Time de Desenvolvimento & Desenvolvimento de API REST com Java e Spring Boot; lógica de negócio; implementação de segurança \\
+\hline
+Pedro Yoshiaki & Desenvolvedor Back-end & Time de Desenvolvimento & Desenvolvimento de API REST com Java e Spring Boot; lógica de negócio; implementação de segurança \\
+\hline
+Matheus Soares & Desenvolvedor Front-end & Time de Desenvolvimento & Implementação da interface visual; transformação de protótipos UX em componentes funcionais \\
+\hline
+Olívia Helena & DBA e Front-end & Scrum Master & Facilitar cerimônias Scrum; remover impedimentos; apoiar o time; além de contribuir na estrutura de dados e interface \\
+\end{tabular}
+\legend{Fonte: Autoria própria (2026).}
+\end{table}
+
+\subsubsection{Sprints}
+
+O desenvolvimento do \textit{SyncCarreira} foi estruturado em um ciclo de 10 meses (fevereiro a dezembro de 2026), utilizando a metodologia ágil Scrum para garantir entregas incrementais e controle de qualidade. O cronograma foi organizado em \textit{Sprints} quinzenais, permitindo a adaptação contínua aos requisitos e a validação constante das funcionalidades.
+
+A distribuição das etapas de desenvolvimento compreende:
+
+\begin{itemize}
+    \item \textbf{Fase de Fundação e MVP (Fevereiro/2026 -- Junho/2026):} Foco no levantamento de requisitos, modelagem de banco de dados e implementação das funcionalidades essenciais para o MVP (sistema de testes e painéis de acesso), com entrega final prevista para o dia 02 de junho de 2026.
+
+    \item \textbf{Fase de Expansão e Refinamento (Junho/2026 -- Dezembro/2026):} Foco na implementação de funcionalidades avançadas, integração de relatórios analíticos, refinamento da interface com base em testes de usabilidade e preparação final para a entrega do projeto completo em 02 de dezembro de 2026.
+\end{itemize}
+
+Cada \textit{Sprint} foi documentada no arquivo \texttt{diario.md} presente no repositório do projeto, onde foram registrados os impedimentos, as tarefas concluídas e o progresso do cronograma, garantindo a transparência e o acompanhamento rigoroso de todas as etapas de execução.
+
+\section{Repositório da Aplicação}
+
+O código-fonte do \textit{SyncCarreira} está hospedado na plataforma GitHub, utilizando controle de versão para garantir a rastreabilidade e a organização do desenvolvimento.
+
+\noindent\textbf{Link do Repositório:} \url{https://github.com/VictorB4rros/SyncCarreira}
+
+\noindent\textbf{Instruções de Acesso:} O repositório é público e contém toda a estrutura do projeto \textit{full-stack}, integrando o \textit{front-end} desenvolvido em React ao \textit{back-end} construído em Java com \textit{Spring Boot}. Para acessar e executar o sistema localmente, o desenvolvedor deve clonar o repositório, garantindo a instalação do Java 17+ e do Maven. As dependências e configurações de ambiente são processadas automaticamente pelo arquivo \texttt{pom.xml}, conforme detalhado na documentação técnica presente no repositório do projeto.

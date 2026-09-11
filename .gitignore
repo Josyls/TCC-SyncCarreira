@@ -1,0 +1,31 @@
+# Raiz do monorepo. As subpastas Source/synccarreira-api e
+# Source/synccarreira-frontend já têm seus próprios .gitignore (não editados
+# aqui) — isto cobre o que sobra na raiz.
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Build artifacts que podem aparecer fora das subpastas conhecidas
+node_modules/
+dist/
+build/
+.gradle/
+
+# Screenshots/artefatos de verificação gerados durante o desenvolvimento
+# (checkpoints locais, não fazem parte do produto)
+*.png
+*.jpg
+*.jpeg
+
+# Segredos que nunca devem ser versionados
+.env
+.env.local
+*.pem
+*.key

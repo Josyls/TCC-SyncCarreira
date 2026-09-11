@@ -1,0 +1,61 @@
+name: ACTION - Build Codigo
+
+# TRIGGER:
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+
+
+jobs:
+
+  # BACKEND:
+
+  build-backend:
+    name: Build Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Repo
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Garantir permissão no gradlew
+        run: |
+          cd Source/synccarreira-api
+          chmod +x gradlew
+
+      - name: Compilar com Gradle
+        run: |
+          cd Source/synccarreira-api
+          ./gradlew compileJava --no-daemon
+
+
+  # FRONTEND:
+
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar Dependências e Compilar Front
+        run: |
+          cd Source/synccarreira-frontend
+          npm ci
+          npm run build

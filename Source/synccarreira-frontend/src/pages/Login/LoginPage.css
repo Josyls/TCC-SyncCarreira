@@ -1,0 +1,250 @@
+/* ═══════════════════════════════════════════════════════════════
+   src/pages/Login/LoginPage.css
+   Estilos exclusivos da página de login.
+   Usa variáveis de src/styles/variables.css (via global.css).
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Estrutura ─────────────────────────────────────────────── */
+.lp-root {
+  min-height: 100vh;
+  background: var(--sc-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ────────────────────────────────────────────────── */
+.lp-header {
+  height: 54px;
+  background: var(--sc-white);
+  border-bottom: 1px solid var(--sc-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+}
+
+.lp-header__brand {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sc-text);
+}
+
+.lp-header__help {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--sc-border);
+  background: none;
+  font-size: 13px;
+  color: var(--sc-muted);
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── Main ──────────────────────────────────────────────────── */
+.lp-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px 32px;
+  gap: 16px;
+}
+
+/* ── Card ──────────────────────────────────────────────────── */
+.lp-card {
+  background: var(--sc-white);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-lg);
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--sc-shadow);
+  text-align: center;
+}
+
+/* ── Ícone ─────────────────────────────────────────────────── */
+.lp-icon {
+  width: 52px; height: 52px;
+  background: var(--sc-roxo-soft);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--sc-roxo);
+  margin: 0 auto 18px;
+}
+
+.lp-card__title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--sc-text);
+  margin-bottom: 4px;
+}
+
+.lp-card__sub {
+  font-size: 13.5px;
+  color: var(--sc-muted);
+  margin-bottom: 28px;
+}
+
+/* ── Erro ──────────────────────────────────────────────────── */
+.lp-error {
+  background: var(--sc-error-bg);
+  border: 1px solid var(--sc-error-brd);
+  border-radius: var(--sc-radius-sm);
+  padding: 9px 13px;
+  font-size: 13px;
+  color: var(--sc-error-txt);
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+/* ── Campos ────────────────────────────────────────────────── */
+.lp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.lp-field label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--sc-muted);
+}
+
+.lp-field input {
+  width: 100%;
+  height: 44px;
+  background: #fafafa;
+  border: 1.5px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  padding: 0 14px;
+  font-size: 14px;
+  color: var(--sc-text);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.lp-field input::placeholder { color: #c0c4cc; }
+
+.lp-field input:focus {
+  border-color: var(--sc-roxo);
+  box-shadow: 0 0 0 3px rgba(108, 71, 255, 0.1);
+  background: var(--sc-white);
+}
+
+/* Campo senha com botão olho */
+.lp-field__wrap { position: relative; }
+.lp-field__wrap input { padding-right: 42px; }
+
+.lp-field__eye {
+  position: absolute;
+  right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  color: var(--sc-muted);
+  display: flex; align-items: center; padding: 0;
+  transition: color 0.15s;
+}
+
+.lp-field__eye:hover { color: var(--sc-roxo); }
+
+/* ── Linha lembrar / esqueceu ──────────────────────────────── */
+.lp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.lp-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--sc-text);
+  cursor: pointer;
+}
+
+.lp-check input[type="checkbox"] {
+  width: 15px; height: 15px;
+  accent-color: var(--sc-roxo);
+}
+
+/* ── Botão principal ───────────────────────────────────────── */
+.lp-btn {
+  width: 100%;
+  height: 46px;
+  background: var(--sc-roxo);
+  border: none;
+  border-radius: var(--sc-radius-md);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+  box-shadow: var(--sc-shadow-btn);
+}
+
+.lp-btn:hover:not(:disabled) {
+  background: var(--sc-roxo-hover);
+  box-shadow: 0 6px 18px rgba(108, 71, 255, 0.4);
+}
+
+.lp-btn:active:not(:disabled) { transform: scale(0.98); }
+.lp-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.lp-spinner {
+  width: 18px; height: 18px;
+  border: 2.5px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: lpSpin 0.7s linear infinite;
+}
+
+@keyframes lpSpin { to { transform: rotate(360deg); } }
+
+/* ── Link texto ────────────────────────────────────────────── */
+.lp-link {
+  background: none; border: none;
+  color: var(--sc-roxo);
+  font-size: 13px;
+  padding: 0;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.lp-link:hover { opacity: 0.7; text-decoration: underline; }
+
+.lp-footer-text {
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--sc-muted);
+}
+
+/* ── Banner ────────────────────────────────────────────────── */
+.lp-banner {
+  width: 100%;
+  max-width: 420px;
+  height: 80px;
+  background: linear-gradient(135deg, #c4b0ff 0%, #a78bfa 100%);
+  border-radius: 14px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 12px;
+}
+
+.lp-banner p {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #fff;
+}
+
+/* ── Responsivo ────────────────────────────────────────────── */
+@media (max-width: 520px) {
+  .lp-card { padding: 32px 22px; }
+}
