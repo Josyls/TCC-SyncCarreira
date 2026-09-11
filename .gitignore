@@ -18,6 +18,11 @@ dist/
 build/
 .gradle/
 
+# Metadado local do Vercel CLI (criado ao rodar `vercel deploy`; não deve
+# ser versionado, e o .gitignore do próprio synccarreira-frontend não pode
+# ser tocado — regra de ouro do legado)
+.vercel/
+
 # Screenshots/artefatos de verificação gerados durante o desenvolvimento
 # (checkpoints locais, não fazem parte do produto)
 *.png
