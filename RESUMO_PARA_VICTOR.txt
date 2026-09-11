@@ -1,0 +1,188 @@
+RESUMO DAS MUDANÇAS NO SYNCCARREIRA — PARA O VICTOR
+=====================================================
+Data: 11/09/2026
+Autora: Joseane
+
+
+REGRA QUE SEGUI O TEMPO TODO
+-----------------------------
+Victor, você não participou da conversa onde eu combinei os limites desse
+trabalho com uma ferramenta de IA (Claude) que usei pra me ajudar a
+implementar — então deixo aqui, por escrito e de forma auditável, exatamente
+o que foi combinado e o que foi feito. Não é "confia em mim": dá pra
+conferir cada afirmação abaixo direto no código e no `git log`.
+
+O combinado foi: NENHUM arquivo que já existia no repositório (seu, meu ou
+de qualquer um do grupo) pode ser alterado. Só posso criar arquivos NOVOS,
+e plugá-los por fora no que já existia. A ÚNICA exceção, combinada
+explicitamente antes de eu começar a implementar, foi esta:
+
+  ARQUIVO:  Source/synccarreira-frontend/src/App.jsx
+  LINHA:    2
+
+  ANTES:
+    import AppRoutes from './routes/AppRoutes.jsx'
+
+  DEPOIS:
+    import AppRoutes from './routes/AppRoutes2.jsx'
+
+  POR QUÊ: o React só consegue montar as telas de uma aplicação a partir
+  de UM roteador só (o componente <AppRoutes /> que aparece dentro do
+  <App />, linha 7 do mesmo arquivo). Eu criei um arquivo de rotas NOVO
+  (AppRoutes2.jsx, arquivo novo, não mexe no AppRoutes.jsx original) com
+  as telas novas (Admin, Aluno, Psicóloga) plugadas junto com as telas
+  antigas que continuam em uso (Login, Cadastro). Não existe forma de o
+  App.jsx carregar dois roteadores ao mesmo tempo — ou ele aponta pro seu
+  roteador original, ou aponta pro novo. Trocar essa 1 linha foi a única
+  maneira de fazer as telas novas aparecerem sem duplicar/reescrever o
+  App.jsx inteiro. É literalmente a menor mudança possível: 1 linha, 1
+  arquivo, e reversível em segundos (ver seção 4).
+
+  Pra conferir você mesmo: `git log -p -- Source/synccarreira-frontend/src/App.jsx`
+  mostra que esse arquivo tem exatamente essa 1 linha de diferença desde
+  sempre neste repositório (ele já entrou assim no commit inicial, porque
+  o git deste projeto começou nesta sessão — mas o AppRoutes.jsx original
+  ainda está no repo, intacto, pra comparação lado a lado).
+
+Fora essa linha, tudo que eu fiz foi em ARQUIVOS NOVOS (controllers,
+services, entidades, páginas, .sql), plugados por fora no que já existia.
+Onde o código de vocês tinha um bug real, eu contornei por fora em vez de
+corrigir o arquivo original — então o "bug" ainda está lá, do jeito que
+estava, e o comportamento errado só não aparece mais na prática (ver
+seção 2 abaixo pra saber exatamente onde).
+
+
+1. O QUE EU IMPLEMENTEI (resumo)
+----------------------------------
+Cobri os requisitos que faltavam do TCC: gestão de instituições/turmas,
+gestão de usuários (admin), papel de Psicóloga, a jornada completa do
+aluno (trilhas com bloqueio sequencial, síntese, leque de carreiras,
+panorama, histórico), e o painel da psicóloga (status dos alunos,
+alertas, links curados, agendamento com arquivo .ics, feedback,
+relatórios em CSV). Também adicionei criptografia (AES-256) nos campos de
+texto livre mais sensíveis (bio do aluno, sínteses, respostas abertas,
+feedback da psicóloga).
+
+Tudo documentado em detalhe em HANDOFF.md (técnico, escrito pra retomar o
+projeto do zero) e ENTREGA_V2.md (mais resumido, com a matriz de
+requisitos). Esse .txt aqui é só o recorte que interessa pra você revisar
+o SEU código.
+
+
+2. PONTOS DE ATENÇÃO NO CÓDIGO LEGADO (SEU) — pra você decidir se mexe
+------------------------------------------------------------------------
+Eu NÃO corrigi nada disso (não podia). Só contornei. Se quiser consertar
+de vez, aqui estão os locais exatos:
+
+a) authService.js — psicóloga vira administrador
+   Arquivo: Source/synccarreira-frontend/src/services/authService.js
+   O ROLE_MAP ali é { aluno: 1, psicologa: 2 }. Só que no banco (import.sql)
+   o id 2 é ROLE_ADMIN, não psicóloga — então qualquer cadastro de
+   psicóloga feito pelo formulário público de cadastro (CadastroPage.jsx)
+   cria um ADMINISTRADOR por engano.
+   Meu contorno: criei um terceiro papel, ROLE_PSICOLOGA (id 3), e um
+   authServiceV2.js novo com o mapa certo. Só que a tela de cadastro
+   pública (que é sua, não editei) continua chamando o authService.js
+   antigo. Resultado: hoje, criar psicóloga de forma confiável só dá pelo
+   painel do Admin — o cadastro público pra psicóloga está com esse bug
+   ainda ativo.
+   Se quiser corrigir: trocar o import em CadastroPage.jsx pra usar
+   authServiceV2 (ou simplesmente ajustar o ROLE_MAP pra 1/2/3 certos).
+
+b) ResourceServerConfig — nega tudo que não está na lista dele
+   Rota nova, sem estar na lista de permissões desse arquivo, recebe 403
+   mesmo autenticado. Eu descobri isso na prática. Contornei criando uma
+   segunda cadeia de segurança (SecurityConfigV2, arquivo novo) com
+   prioridade maior, cobrindo minhas rotas + as rotas legadas sensíveis.
+   Não é bug exatamente, mas é bom você saber que existem DUAS cadeias de
+   segurança coexistindo agora, e qualquer rota nova que você criar no
+   futuro (não no SecurityConfigV2) vai cair na regra antiga e ser negada
+   por padrão.
+
+c) AuthorizationServerConfig — chave RSA nova a cada reinício
+   Gera um par de chaves novo toda vez que o backend sobe
+   (generateRsaKey()). Isso significa que todo restart invalida TODOS os
+   tokens JWT emitidos antes. Em produção isso derruba a sessão de todo
+   mundo logado a cada deploy/restart do servidor. Não é grave pro TCC,
+   mas é uma limitação que vale você saber que existe.
+
+d) create.sql — schema e seed duplicados dentro do mesmo arquivo
+   O arquivo inteiro se repete uma vez (o bloco de CREATE/ALTER + seed
+   aparece duas vezes). Rodar o arquivo inteiro de uma vez duplica dado.
+   Eu contornei rodando só as 22 primeiras linhas (só o DDL) e o
+   import.sql separado. Não corrigi o arquivo. Se for usar esse
+   create.sql em algum outro contexto, cuidado com isso.
+
+e) import.sql — ordem das trilhas diferente do documento de requisitos
+   O documento define Informação como 3ª trilha e Plano de Futuro como
+   4ª; o import.sql cadastra o contrário. Combinei com a Joseane
+   (usuária) e segui o documento — corrigi isso com um UPDATE numa
+   migração minha nova, sem tocar no import.sql.
+
+f) AnswerService.java / tb_respostas_aluno — grava texto sem criptografar
+   Esse service legado grava a resposta do aluno em texto puro, sem
+   passar pelo conversor de criptografia que eu criei. Hoje ele não é
+   mais usado por nenhuma tela (a jornada nova usa outro endpoint,
+   criptografado), mas o endpoint antigo POST /answers continua existindo
+   e continua gravando em claro se alguém bater nele direto (Swagger/API).
+   Não é uma falha ativa na prática (0 linhas na tabela, UI não aponta
+   mais pra lá), mas fica registrado.
+
+g) .env.production do frontend aponta pra um domínio morto
+   (https://synccarreira.duckdns.org, que não existe mais). Não precisei
+   editar porque a variável de ambiente de build (VITE_API_URL) tem
+   prioridade sobre esse arquivo no Vite — mas se algum dia rodar um
+   build de produção sem setar essa env var, vai tentar falar com um
+   servidor que não existe.
+
+
+3. O QUE EU NÃO CONSEGUI TERMINAR (não é sobre o seu código, é meu mesmo)
+---------------------------------------------------------------------------
+- Falta uma tela pra psicóloga validar itens do catálogo de carreiras
+  (o campo existe no banco, falta o endpoint + botão).
+- Falta um endpoint de exclusão total de dados do aluno (LGPD).
+- Algumas consultas do painel da psicóloga podem ficar lentas com turmas
+  grandes em produção (não otimizei, N+1 query).
+- Poucos testes automatizados cobrindo o código novo.
+Lista completa e detalhada: seção 8 do HANDOFF.md.
+
+
+4. COMO FAZER ROLLBACK FÁCIL (voltar tudo ao seu código original)
+--------------------------------------------------------------------
+Como eu só adicionei arquivos novos (exceto a 1 linha do App.jsx), reverter
+é simples. Duas opções:
+
+OPÇÃO RÁPIDA — desligar só as telas novas, sem apagar nada:
+  Abra Source/synccarreira-frontend/src/App.jsx e troque a linha:
+    import AppRoutes from './routes/AppRoutes2.jsx'
+  de volta para:
+    import AppRoutes from './routes/AppRoutes.jsx'
+  Isso sozinho já faz o front voltar a usar só as telas originais suas.
+  O backend continua rodando (os controllers novos ficam ali, mas sem uso
+  pela UI). É a forma mais rápida de "desligar" tudo sem apagar nada.
+
+OPÇÃO COMPLETA — reverter tudo, inclusive o backend:
+  No git, o commit "feat: implementa RF-01..RF-16, RN-01..RN-09 (Blocos
+  1-6) sobre o legado" (hash 09fc165) é o primeiro commit do repositório e
+  contém TUDO que eu adicionei. Como é aditivo, dá pra:
+    a) Deletar as pastas/arquivos novos listados na seção 4 do
+       HANDOFF.md (organizados por bloco), e reverter a 1 linha do
+       App.jsx — fica exatamente como estava antes de eu mexer.
+    b) Ou, se preferir manter histórico do git: usar os arquivos daqui
+       do repositório como referência e simplesmente não subir as pastas
+       novas (config/SecurityConfigV2.java, entities novas, pages/Admin,
+       pages/Aluno, pages/Psicologa, etc.) pro ambiente que você for usar.
+
+Nenhuma tabela nova no banco (V2 a V5) afeta as tabelas legadas — são
+todas tabelas novas (tb_instituicao, tb_conta, tb_jornada, etc.), então
+simplesmente não rodar essas migrações também é uma forma de reverter o
+banco sem afetar create.sql/import.sql.
+
+
+5. ONDE OLHAR SE QUISER MAIS DETALHE
+----------------------------------------
+- HANDOFF.md (raiz do projeto) — documento técnico completo, com todas as
+  decisões explicadas e o porquê de cada uma.
+- ENTREGA_V2.md — resumo mais curto, focado nos requisitos cobertos.
+- API_CONTRACT_V2.md (dentro de synccarreira-frontend) — todos os
+  endpoints novos, payloads e permissões exigidas.
